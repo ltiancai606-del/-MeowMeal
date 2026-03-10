@@ -1,0 +1,5 @@
+{
+  "name": "喵膳 MeowMeal",
+  "description": "猫咪科学自制食谱管家，提供一站式食谱定制、食材管理、营养分析及喂养指导的工具型 APP。",
+  "requestFramePermissions": ["camera"]
+}
