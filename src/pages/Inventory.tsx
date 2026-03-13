@@ -1,9 +1,10 @@
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { Plus, Camera, Search, Filter, ChevronRight, Trash2, X, Edit2 } from 'lucide-react';
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Plus, Camera, Search, Filter, ChevronRight, Trash2, X, Edit2, Loader2 } from 'lucide-react';
 import { MOCK_INVENTORY, MEAT_DATABASE, saveInventory } from '../data/mock';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '../lib/utils';
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { GoogleGenAI, Type } from '@google/genai';
 
 function InventoryList() {
   const [, setForceRender] = useState(0);
@@ -185,6 +186,99 @@ function InventoryList() {
 }
 
 function UploadReceipt() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Data = (reader.result as string).split(',')[1];
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          
+          const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: {
+              parts: [
+                {
+                  inlineData: {
+                    data: base64Data,
+                    mimeType: file.type,
+                  },
+                },
+                {
+                  text: '请解析图片中的食材信息，返回JSON格式。注意：1斤 = 500克 = 0.5kg。同一张图片中可能包含多个食材，请提取所有食材。在中文语境下，猪腰=猪肾，腰是肾的意思，蛋=睾丸，请注意识别并转换为标准名称（如猪肾、猪睾丸等）。返回一个包含 items 数组的 JSON，每个 item 包含以下字段：meatName(食材种类名称，如猪里脊、鸡胸肉等), weight(重量，单位克(g)，数字，如果是斤请乘以500，如果是kg请乘以1000), price(价格，数字), productionDate(生产日期，YYYY-MM-DD), expiryDate(过期日期，YYYY-MM-DD)。如果无法识别，请尽量猜测或留空。',
+                },
+              ],
+            },
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  items: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        meatName: { type: Type.STRING },
+                        weight: { type: Type.NUMBER },
+                        price: { type: Type.NUMBER },
+                        productionDate: { type: Type.STRING },
+                        expiryDate: { type: Type.STRING },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          const jsonStr = response.text?.trim() || '{}';
+          const result = JSON.parse(jsonStr);
+          
+          const items = (result.items || []).map((item: any) => {
+            let meatId = MEAT_DATABASE[0].id;
+            if (item.meatName) {
+              const meat = MEAT_DATABASE.find(m => 
+                m.name.includes(item.meatName) || item.meatName.includes(m.name)
+              );
+              if (meat) meatId = meat.id;
+            }
+            return {
+              meatId,
+              weight: item.weight?.toString() || '',
+              price: item.price?.toString() || '',
+              productionDate: item.productionDate || format(new Date(), 'yyyy-MM-dd'),
+              expiryDate: item.expiryDate || format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+            };
+          });
+
+          navigate('/inventory/manual', {
+            state: {
+              items: items.length > 0 ? items : undefined
+            }
+          });
+        } catch (error) {
+          console.error('API Error:', error);
+          alert('识别失败，请重试或手动录入');
+          setIsUploading(false);
+        }
+      };
+    } catch (error) {
+      console.error('File Error:', error);
+      alert('读取文件失败');
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="p-4 space-y-4 bg-stone-50 min-h-full">
       <header className="mb-6 flex items-center gap-2">
@@ -202,8 +296,27 @@ function UploadReceipt() {
         <p className="text-sm text-stone-500 mb-6">
           支持自动识别肉类、部位、重量、价格及日期
         </p>
-        <button className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium w-full hover:bg-emerald-700 transition-colors">
-          选择图片
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          disabled={isUploading}
+        />
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium w-full hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              识别中...
+            </>
+          ) : (
+            '选择图片'
+          )}
         </button>
       </div>
     </div>
@@ -212,105 +325,163 @@ function UploadReceipt() {
 
 function ManualEntry() {
   const navigate = useNavigate();
-  const [meatId, setMeatId] = useState(MEAT_DATABASE[0].id);
-  const [weight, setWeight] = useState('');
-  const [price, setPrice] = useState('');
-  const [productionDate, setProductionDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [expiryDate, setExpiryDate] = useState(format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'));
+  const location = useLocation();
+  const state = location.state as any || {};
+
+  const initialItems = state.items && state.items.length > 0 ? state.items : [{
+    id: `temp-${Date.now()}`,
+    meatId: state.meatId || MEAT_DATABASE[0].id,
+    weight: state.weight || '',
+    price: state.price || '',
+    productionDate: state.productionDate || format(new Date(), 'yyyy-MM-dd'),
+    expiryDate: state.expiryDate || format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+  }];
+
+  const [items, setItems] = useState(initialItems);
+
+  const handleUpdateItem = (index: number, field: string, value: string) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setItems(newItems);
+  };
+
+  const handleAddItem = () => {
+    setItems([...items, {
+      id: `temp-${Date.now()}`,
+      meatId: MEAT_DATABASE[0].id,
+      weight: '',
+      price: '',
+      productionDate: format(new Date(), 'yyyy-MM-dd'),
+      expiryDate: format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+    }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    if (items.length === 1) return;
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
 
   const handleSave = () => {
-    if (!weight || !price) {
-      alert('请填写重量和价格');
-      return;
+    for (const item of items) {
+      if (!item.weight || !item.price) {
+        alert('请填写所有食材的重量和价格');
+        return;
+      }
     }
 
-    const newItem = {
-      id: `i${Date.now()}`,
-      meatId,
-      weight: parseFloat(weight),
-      price: parseFloat(price),
-      productionDate,
-      expiryDate,
+    const newInventoryItems = items.map((item: any, index: number) => ({
+      id: `i${Date.now()}-${index}`,
+      meatId: item.meatId,
+      weight: parseFloat(item.weight),
+      price: parseFloat(item.price),
+      productionDate: item.productionDate,
+      expiryDate: item.expiryDate,
       status: 'normal' as const
-    };
+    }));
 
-    MOCK_INVENTORY.push(newItem);
+    MOCK_INVENTORY.push(...newInventoryItems);
     saveInventory();
     navigate('/inventory');
   };
 
   return (
     <div className="p-4 space-y-4 bg-stone-50 min-h-full pb-24">
-      <header className="mb-6 flex items-center gap-2">
-        <Link to="/inventory" className="text-stone-500 hover:text-stone-700">
-          <ChevronRight className="w-6 h-6 rotate-180" />
-        </Link>
-        <h1 className="text-2xl font-bold text-stone-900">手动录入</h1>
+      <header className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link to="/inventory" className="text-stone-500 hover:text-stone-700">
+            <ChevronRight className="w-6 h-6 rotate-180" />
+          </Link>
+          <h1 className="text-2xl font-bold text-stone-900">手动录入</h1>
+        </div>
+        <button 
+          onClick={handleAddItem}
+          className="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          添加食材
+        </button>
       </header>
       
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">食材种类</label>
-          <select 
-            value={meatId}
-            onChange={(e) => setMeatId(e.target.value)}
-            className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            {MEAT_DATABASE.map(meat => (
-              <option key={meat.id} value={meat.id}>{meat.name}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">重量 (g)</label>
-            <input 
-              type="number" 
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="例如: 500"
-              className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+      <div className="space-y-6">
+        {items.map((item: any, index: number) => (
+          <div key={item.id || index} className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-4 relative">
+            {items.length > 1 && (
+              <button 
+                onClick={() => handleRemoveItem(index)}
+                className="absolute top-4 right-4 text-stone-400 hover:text-red-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1">食材种类 {index + 1}</label>
+              <select 
+                value={item.meatId}
+                onChange={(e) => handleUpdateItem(index, 'meatId', e.target.value)}
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {MEAT_DATABASE.map(meat => (
+                  <option key={meat.id} value={meat.id}>{meat.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">重量 (g)</label>
+                <input 
+                  type="number" 
+                  value={item.weight}
+                  onChange={(e) => handleUpdateItem(index, 'weight', e.target.value)}
+                  placeholder="例如: 500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">价格 (元)</label>
+                <input 
+                  type="number" 
+                  value={item.price}
+                  onChange={(e) => handleUpdateItem(index, 'price', e.target.value)}
+                  placeholder="例如: 25.5"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">生产日期</label>
+                <input 
+                  type="date" 
+                  value={item.productionDate}
+                  onChange={(e) => handleUpdateItem(index, 'productionDate', e.target.value)}
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">过期日期</label>
+                <input 
+                  type="date" 
+                  value={item.expiryDate}
+                  onChange={(e) => handleUpdateItem(index, 'expiryDate', e.target.value)}
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">价格 (元)</label>
-            <input 
-              type="number" 
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="例如: 25.5"
-              className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">生产日期</label>
-            <input 
-              type="date" 
-              value={productionDate}
-              onChange={(e) => setProductionDate(e.target.value)}
-              className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">过期日期</label>
-            <input 
-              type="date" 
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-              className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-        </div>
-        
+        ))}
+      </div>
+      
+      <div className="pt-4">
         <button 
           onClick={handleSave}
           className="w-full bg-emerald-600 text-white py-3 rounded-xl font-medium hover:bg-emerald-700 transition-colors mt-4"
         >
-          保存入库
+          保存入库 ({items.length}件)
         </button>
       </div>
     </div>

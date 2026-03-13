@@ -11,7 +11,7 @@ export const FULL_NUTRITION_STANDARDS = {
     threonine: { min: 1.3, max: null, label: '苏氨酸', unit: 'g', category: '蛋白质与必需氨基酸' },
     tryptophan: { min: 0.4, max: null, label: '色氨酸', unit: 'g', category: '蛋白质与必需氨基酸' },
     valine: { min: 1.55, max: null, label: '缬氨酸', unit: 'g', category: '蛋白质与必需氨基酸' },
-    taurine: { min: 0.17, max: null, label: '牛磺酸', unit: 'g', category: '蛋白质与必需氨基酸' },
+    taurine: { min: 170, max: null, label: '牛磺酸', unit: 'mg', category: '蛋白质与必需氨基酸' },
     
     fat: { min: 22.5, max: 82.5, label: '总脂肪', unit: 'g', category: '脂肪与必需脂肪酸' },
     linoleic_acid: { min: 1.4, max: null, label: '亚油酸 (Ω-6)', unit: 'g', category: '脂肪与必需脂肪酸' },
@@ -61,7 +61,7 @@ export const FULL_NUTRITION_STANDARDS = {
     threonine: { min: 0.73, max: null, label: '苏氨酸', unit: '%', category: '蛋白质与必需氨基酸' },
     tryptophan: { min: 0.16, max: null, label: '色氨酸', unit: '%', category: '蛋白质与必需氨基酸' },
     valine: { min: 0.62, max: null, label: '缬氨酸', unit: '%', category: '蛋白质与必需氨基酸' },
-    taurine: { min: 0.2, max: null, label: '牛磺酸 (湿粮)', unit: '%', category: '蛋白质与必需氨基酸' },
+    taurine: { min: 500, max: null, label: '牛磺酸 (湿粮)', unit: 'mg', category: '蛋白质与必需氨基酸' },
 
     fat: { min: 9, max: null, label: '粗脂肪', unit: '%', category: '脂肪与必需脂肪酸' },
     linoleic_acid: { min: 0.6, max: null, label: '亚油酸 (Ω-6)', unit: '%', category: '脂肪与必需脂肪酸' },

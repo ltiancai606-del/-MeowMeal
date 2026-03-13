@@ -246,7 +246,7 @@ function CatProfile() {
         </div>
       </div>
 
-      <div className="fixed bottom-20 left-0 w-full px-4 max-w-md mx-auto">
+      <div className="fixed bottom-20 inset-x-0 max-w-md mx-auto px-4">
         <button onClick={handleSave} className="w-full bg-emerald-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
           <Save className="w-5 h-5" />
           保存档案
@@ -326,7 +326,7 @@ function SettingsPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-20 left-0 w-full px-4 max-w-md mx-auto">
+      <div className="fixed bottom-20 inset-x-0 max-w-md mx-auto px-4">
         <button onClick={handleSaveSettings} className="w-full bg-emerald-600 text-white px-4 py-3 rounded-xl font-medium shadow-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
           <Save className="w-5 h-5" />
           保存设置

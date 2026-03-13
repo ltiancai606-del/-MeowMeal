@@ -1,43 +1,3 @@
-export type MeatCategory = 'red_meat' | 'white_meat' | 'fish' | 'liver' | 'heart' | 'other_organ' | 'mussel';
-
-export interface MeatNutrient {
-  id: string;
-  name: string;
-  category: MeatCategory;
-  kcal: number; // per 100g
-  protein: number; // g
-  fat: number; // g
-  carbohydrate: number; // g
-  moisture?: number; // g
-  calcium: number; // mg
-  phosphorus: number; // mg
-  iron: number; // mg
-  zinc: number; // mg
-  taurine: number; // mg
-  choline?: number; // mg
-  iodine?: number; // mg
-  copper?: number; // mg
-  manganese?: number; // mg
-  magnesium?: number; // mg
-  sodium?: number; // mg
-  vb1?: number; // mg
-  ve?: number; // mg
-  epa?: number; // mg
-  dha?: number; // mg
-  epa_dha?: number; // mg
-  va?: number; // IU
-  vd?: number; // IU
-  potassium?: number; // mg
-  vb2?: number; // mg
-  vb3?: number; // mg
-  vb5?: number; // mg
-  vb6?: number; // mg
-  vb7?: number; // μg
-  vb9?: number; // μg
-  vb12?: number; // μg
-}
-
-export const MEAT_DATABASE: MeatNutrient[] = 
 [
   {
     "id": "m1",
@@ -65,15 +25,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 350,
-    "vb2": 0.2,
-    "vb3": 5,
-    "vb5": 0.8,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 2,
-    "vb12": 0.7
+    "vd": 0
   },
   {
     "id": "m2",
@@ -101,15 +53,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 350,
-    "vb2": 0.2,
-    "vb3": 5,
-    "vb5": 0.8,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 2,
-    "vb12": 0.7
+    "vd": 0
   },
   {
     "id": "m3",
@@ -137,15 +81,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 300,
-    "vb2": 0.2,
-    "vb3": 5,
-    "vb5": 0.8,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 1
+    "vd": 0
   },
   {
     "id": "m4",
@@ -173,15 +109,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
     "id": "m5",
@@ -209,15 +137,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 15000,
-    "vd": 40,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 40
   },
   {
     "id": "m6",
@@ -245,15 +165,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 500,
-    "vd": 0,
-    "potassium": 260,
-    "vb2": 1.8,
-    "vb3": 8,
-    "vb5": 4,
-    "vb6": 0.6,
-    "vb7": 30,
-    "vb9": 60,
-    "vb12": 25
+    "vd": 0
   },
   {
     "id": "m7",
@@ -281,15 +193,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 200,
-    "vb2": 0.2,
-    "vb3": 2,
-    "vb5": 1,
-    "vb6": 0.1,
-    "vb7": 2,
-    "vb9": 2,
-    "vb12": 1
+    "vd": 0
   },
   {
     "id": "m8",
@@ -317,15 +221,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 20,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
     "id": "m9",
@@ -353,15 +249,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 25,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
     "id": "m10",
@@ -389,15 +277,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 40,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
     "id": "m11",
@@ -425,15 +305,7 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 100,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
     "id": "m12",
@@ -461,54 +333,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 12000,
-    "vd": 0,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 0
   },
   {
     "id": "m13",
-    "name": "鸡胗",
-    "category": "other_organ",
-    "kcal": 94,
-    "protein": 17.7,
-    "carbohydrate": 0,
-    "fat": 2.1,
-    "moisture": 79,
-    "calcium": 11,
-    "phosphorus": 148,
-    "iron": 2.5,
-    "zinc": 2.7,
-    "taurine": 100,
-    "choline": 75,
-    "iodine": 0.01,
-    "copper": 0.1,
-    "manganese": 0.05,
-    "magnesium": 15,
-    "sodium": 69,
-    "vb1": 0.03,
-    "ve": 0.2,
-    "epa": 0,
-    "dha": 0,
-    "epa_dha": 0,
-    "va": 0,
-    "vd": 0,
-    "potassium": 237,
-    "vb2": 0.23,
-    "vb3": 3.8,
-    "vb5": 0.6,
-    "vb6": 0.1,
-    "vb7": 3,
-    "vb9": 6,
-    "vb12": 1.2
-  },
-  {
-    "id": "m14",
     "name": "鸭胸肉",
     "category": "white_meat",
     "kcal": 123,
@@ -533,18 +361,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 50,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
-    "id": "m15",
+    "id": "m14",
     "name": "鸭腿肉",
     "category": "white_meat",
     "kcal": 130,
@@ -569,18 +389,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 45,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
-    "id": "m16",
+    "id": "m15",
     "name": "鸭肉",
     "category": "white_meat",
     "kcal": 337,
@@ -605,18 +417,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 70,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 8,
-    "vb5": 1,
-    "vb6": 0.6,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 0.5
+    "vd": 0
   },
   {
-    "id": "m17",
+    "id": "m16",
     "name": "鸭心",
     "category": "heart",
     "kcal": 153,
@@ -641,18 +445,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 100,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
-    "id": "m18",
+    "id": "m17",
     "name": "鸭肝",
     "category": "liver",
     "kcal": 136,
@@ -677,18 +473,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 14000,
-    "vd": 0,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 0
   },
   {
-    "id": "m19",
+    "id": "m18",
     "name": "牛里脊",
     "category": "red_meat",
     "kcal": 136,
@@ -713,18 +501,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m20",
+    "id": "m19",
     "name": "牛后腿肉",
     "category": "red_meat",
     "kcal": 150,
@@ -749,18 +529,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m21",
+    "id": "m20",
     "name": "牛上脑",
     "category": "red_meat",
     "kcal": 220,
@@ -785,18 +557,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m22",
+    "id": "m21",
     "name": "牛肋条",
     "category": "red_meat",
     "kcal": 280,
@@ -821,18 +585,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m23",
+    "id": "m22",
     "name": "牛腩",
     "category": "red_meat",
     "kcal": 310,
@@ -857,18 +613,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m24",
+    "id": "m23",
     "name": "牛心",
     "category": "heart",
     "kcal": 112,
@@ -893,18 +641,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
-    "id": "m25",
+    "id": "m24",
     "name": "牛肝",
     "category": "liver",
     "kcal": 135,
@@ -929,18 +669,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 16000,
-    "vd": 45,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 45
   },
   {
-    "id": "m26",
+    "id": "m25",
     "name": "牛脾",
     "category": "other_organ",
     "kcal": 105,
@@ -965,20 +697,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 300,
-    "vb2": 0.5,
-    "vb3": 6,
-    "vb5": 1.5,
-    "vb6": 0.1,
-    "vb7": 4,
-    "vb9": 4,
-    "vb12": 5
+    "vd": 0
   },
   {
-    "id": "m27",
+    "id": "m26",
     "name": "牛腰/牛肾",
-    "category": "other_organ",
+    "category": "red_meat",
     "kcal": 99,
     "protein": 17,
     "carbohydrate": 0,
@@ -1001,18 +725,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 400,
-    "vd": 0,
-    "potassium": 260,
-    "vb2": 1.8,
-    "vb3": 8,
-    "vb5": 4,
-    "vb6": 0.6,
-    "vb7": 30,
-    "vb9": 60,
-    "vb12": 25
+    "vd": 0
   },
   {
-    "id": "m28",
+    "id": "m27",
     "name": "三文鱼/鲑鱼",
     "category": "fish",
     "kcal": 208,
@@ -1037,18 +753,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 600,
     "epa_dha": 1000,
     "va": 50,
-    "vd": 400,
-    "potassium": 360,
-    "vb2": 0.15,
-    "vb3": 8,
-    "vb5": 0.8,
-    "vb6": 0.6,
-    "vb7": 4,
-    "vb9": 15,
-    "vb12": 4
+    "vd": 400
   },
   {
-    "id": "m29",
+    "id": "m28",
     "name": "青占鱼/鲭鱼",
     "category": "fish",
     "kcal": 205,
@@ -1073,20 +781,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 700,
     "epa_dha": 1200,
     "va": 100,
-    "vd": 300,
-    "potassium": 360,
-    "vb2": 0.15,
-    "vb3": 8,
-    "vb5": 0.8,
-    "vb6": 0.6,
-    "vb7": 4,
-    "vb9": 15,
-    "vb12": 4
+    "vd": 300
   },
   {
-    "id": "m30",
+    "id": "m29",
     "name": "青口贝",
-    "category": "mussel",
+    "category": "fish",
     "kcal": 172,
     "protein": 24,
     "carbohydrate": 7,
@@ -1109,18 +809,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 300,
     "epa_dha": 500,
     "va": 150,
-    "vd": 0,
-    "potassium": 360,
-    "vb2": 0.15,
-    "vb3": 8,
-    "vb5": 0.8,
-    "vb6": 0.6,
-    "vb7": 4,
-    "vb9": 15,
-    "vb12": 4
+    "vd": 0
   },
   {
-    "id": "m31",
+    "id": "m30",
     "name": "马鲛鱼",
     "category": "fish",
     "kcal": 139,
@@ -1145,20 +837,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 400,
     "epa_dha": 650,
     "va": 40,
-    "vd": 200,
-    "potassium": 360,
-    "vb2": 0.15,
-    "vb3": 8,
-    "vb5": 0.8,
-    "vb6": 0.6,
-    "vb7": 4,
-    "vb9": 15,
-    "vb12": 4
+    "vd": 200
   },
   {
-    "id": "m32",
+    "id": "m31",
     "name": "羊后腿肉",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 200,
     "protein": 19,
     "carbohydrate": 0,
@@ -1181,20 +865,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m33",
+    "id": "m32",
     "name": "羊肩肉",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 280,
     "protein": 17,
     "carbohydrate": 0,
@@ -1217,18 +893,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m34",
+    "id": "m33",
     "name": "羊心",
     "category": "heart",
     "kcal": 122,
@@ -1253,18 +921,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
-    "id": "m35",
+    "id": "m34",
     "name": "羊肝",
     "category": "liver",
     "kcal": 139,
@@ -1289,20 +949,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 25000,
-    "vd": 0,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 0
   },
   {
-    "id": "m36",
+    "id": "m35",
     "name": "羊肾",
-    "category": "other_organ",
+    "category": "fish",
     "kcal": 96,
     "protein": 16.6,
     "carbohydrate": 0,
@@ -1325,20 +977,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 500,
-    "vd": 0,
-    "potassium": 260,
-    "vb2": 1.8,
-    "vb3": 8,
-    "vb5": 4,
-    "vb6": 0.6,
-    "vb7": 30,
-    "vb9": 60,
-    "vb12": 25
+    "vd": 0
   },
   {
-    "id": "m37",
+    "id": "m36",
     "name": "兔里脊",
-    "category": "white_meat",
+    "category": "fish",
     "kcal": 114,
     "protein": 22,
     "carbohydrate": 0,
@@ -1361,20 +1005,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 7,
-    "vb5": 0.7,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 4,
-    "vb12": 1.5
+    "vd": 0
   },
   {
-    "id": "m38",
+    "id": "m37",
     "name": "兔后腿肉",
-    "category": "white_meat",
+    "category": "fish",
     "kcal": 130,
     "protein": 21,
     "carbohydrate": 0,
@@ -1397,20 +1033,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 7,
-    "vb5": 0.7,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 4,
-    "vb12": 1.5
+    "vd": 0
   },
   {
-    "id": "m39",
+    "id": "m38",
     "name": "兔肋排肉",
-    "category": "white_meat",
+    "category": "fish",
     "kcal": 180,
     "protein": 19,
     "carbohydrate": 0,
@@ -1433,20 +1061,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 7,
-    "vb5": 0.7,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 4,
-    "vb12": 1.5
+    "vd": 0
   },
   {
-    "id": "m40",
+    "id": "m39",
     "name": "兔腹肉",
-    "category": "white_meat",
+    "category": "fish",
     "kcal": 200,
     "protein": 18,
     "carbohydrate": 0,
@@ -1469,20 +1089,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 330,
-    "vb2": 0.2,
-    "vb3": 7,
-    "vb5": 0.7,
-    "vb6": 0.5,
-    "vb7": 2,
-    "vb9": 4,
-    "vb12": 1.5
+    "vd": 0
   },
   {
-    "id": "m41",
+    "id": "m40",
     "name": "兔心",
-    "category": "heart",
+    "category": "fish",
     "kcal": 130,
     "protein": 16,
     "carbohydrate": 0.1,
@@ -1505,18 +1117,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
-    "id": "m42",
+    "id": "m41",
     "name": "兔肝",
     "category": "liver",
     "kcal": 125,
@@ -1541,18 +1145,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 18000,
-    "vd": 0,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 0
   },
   {
-    "id": "m43",
+    "id": "m42",
     "name": "兔腰/兔肾",
     "category": "other_organ",
     "kcal": 100,
@@ -1577,20 +1173,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 300,
-    "vd": 0,
-    "potassium": 260,
-    "vb2": 1.8,
-    "vb3": 8,
-    "vb5": 4,
-    "vb6": 0.6,
-    "vb7": 30,
-    "vb9": 60,
-    "vb12": 25
+    "vd": 0
   },
   {
-    "id": "m44",
+    "id": "m43",
     "name": "鹿里脊",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 120,
     "protein": 23,
     "carbohydrate": 0,
@@ -1613,20 +1201,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m45",
+    "id": "m44",
     "name": "鹿后腿",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 130,
     "protein": 22,
     "carbohydrate": 0,
@@ -1649,20 +1229,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m46",
+    "id": "m45",
     "name": "鹿肩/前腿",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 150,
     "protein": 21,
     "carbohydrate": 0,
@@ -1685,20 +1257,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m47",
+    "id": "m46",
     "name": "鹿脖",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 160,
     "protein": 20,
     "carbohydrate": 0,
@@ -1721,20 +1285,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m48",
+    "id": "m47",
     "name": "鹿肋条/腹肉",
-    "category": "red_meat",
+    "category": "fish",
     "kcal": 210,
     "protein": 18,
     "carbohydrate": 0,
@@ -1757,20 +1313,12 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 340,
-    "vb2": 0.2,
-    "vb3": 6,
-    "vb5": 0.6,
-    "vb6": 0.5,
-    "vb7": 3,
-    "vb9": 5,
-    "vb12": 2.5
+    "vd": 0
   },
   {
-    "id": "m49",
+    "id": "m48",
     "name": "鹿心",
-    "category": "heart",
+    "category": "fish",
     "kcal": 115,
     "protein": 17,
     "carbohydrate": 0.1,
@@ -1793,18 +1341,10 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 0,
-    "vd": 0,
-    "potassium": 280,
-    "vb2": 0.9,
-    "vb3": 7,
-    "vb5": 2,
-    "vb6": 0.4,
-    "vb7": 6,
-    "vb9": 5,
-    "vb12": 10
+    "vd": 0
   },
   {
-    "id": "m50",
+    "id": "m49",
     "name": "鹿肝",
     "category": "liver",
     "kcal": 138,
@@ -1829,219 +1369,6 @@ export const MEAT_DATABASE: MeatNutrient[] =
     "dha": 0,
     "epa_dha": 0,
     "va": 20000,
-    "vd": 0,
-    "potassium": 320,
-    "vb2": 2.5,
-    "vb3": 15,
-    "vb5": 7,
-    "vb6": 0.9,
-    "vb7": 35,
-    "vb9": 250,
-    "vb12": 60
+    "vd": 0
   }
-];
-
-export interface Supplement {
-  id: string;
-  name: string;
-  brand?: string;
-  imageUrl?: string;
-  type: 'calcium' | 'taurine' | 'vitamin_b' | 'vitamin_e' | 'fish_oil' | 'iodine' | 'other';
-  unit: string;
-  calcium: number;
-  magnesium: number;
-  potassium: number;
-  sodium: number;
-  phosphorus: number;
-  iodine: number;
-  vd: number;
-  va: number;
-  ve: number;
-  vb1: number;
-  vb2?: number;
-  vb3?: number;
-  vb5?: number;
-  vb6?: number;
-  vb7?: number;
-  vb9?: number;
-  vb12?: number;
-  choline?: number;
-  inositol?: number;
-  paba?: number;
-  manganese: number;
-  taurine: number;
-  iron: number;
-  zinc: number;
-  copper: number;
-  epa_dha: number;
-  epa: number;
-  dha: number;
-  sodium_alginate?: number;
-}
-
-export const SUPPLEMENTS: Supplement[] = [
-  {
-    id: 's1', name: 'NOWSFOOD 柠檬酸钙粉 (Calcium Citrate)', type: 'calcium', unit: 'g',
-    calcium: 210, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's2', name: 'NOWSFOOD 碳酸钙粉 (Calcium Carbonate)', type: 'calcium', unit: 'g',
-    calcium: 353, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's3', name: 'NF Ultra Omega-3 鱼油', type: 'fish_oil', unit: '粒',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 750, epa: 500, dha: 250
-  },
-  {
-    id: 's4', name: 'Viva Naturals 三倍效能鱼油', type: 'fish_oil', unit: '粒',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 1035, epa: 750, dha: 285
-  },
-  {
-    id: 's5', name: '双鲸VE（100mg）', type: 'vitamin_e', unit: '粒',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 100, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's6', name: 'NF 碘化钾 (Potassium Plus Iodine 225mcg)', type: 'iodine', unit: '片',
-    calcium: 0, magnesium: 0, potassium: 99, sodium: 5, phosphorus: 0, iodine: 225, vd: 0, va: 0, ve: 0, vb1: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0, sodium_alginate: 100
-  },
-  {
-    id: 's7', name: 'Nature’s Plus 复合维 B (含米糠)', type: 'vitamin_b', unit: '片',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 10, vb2: 10, vb3: 50, vb6: 10, vb9: 100, vb12: 10, vb7: 20, vb5: 15, choline: 50, inositol: 50, paba: 10, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's8', name: '汤普森复合维生素B', type: 'vitamin_b', unit: '片',
-    calcium: 56, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 0, vb1: 9.5, vb2: 10, vb3: 50, vb6: 8.2, vb9: 400, vb12: 10, vb7: 20, vb5: 13, choline: 50, inositol: 5, paba: 0, manganese: 0, taurine: 0, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's9', name: 'NF 牛磺酸 1000mg', type: 'taurine', unit: '粒',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 100, vb1: 0, manganese: 0, taurine: 1000, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-  {
-    id: 's10', name: 'NF 牛磺酸 500mg', type: 'taurine', unit: '粒',
-    calcium: 0, magnesium: 0, potassium: 0, sodium: 0, phosphorus: 0, iodine: 0, vd: 0, va: 0, ve: 100, vb1: 0, manganese: 0, taurine: 500, iron: 0, zinc: 0, copper: 0, epa_dha: 0, epa: 0, dha: 0
-  },
-];
-
-export const MOCK_USER = {
-  nickname: '铲屎官',
-  avatarUrl: ''
-};
-
-export interface CatProfile {
-  id: string;
-  name: string;
-  age: number;
-  weight: number; // kg
-  gender: 'male' | 'female';
-  neutered: boolean;
-  allergies: string[];
-  dietNeeds: string[];
-  avatarUrl?: string;
-}
-
-export const MOCK_CATS: CatProfile[] = [
-  {
-    id: 'c1',
-    name: 'Mimi',
-    age: 3,
-    weight: 4.5,
-    gender: 'female',
-    neutered: true,
-    allergies: ['牛肉'],
-    dietNeeds: ['减肥', '美毛'],
-  }
-];
-
-export interface InventoryItem {
-  id: string;
-  meatId: string;
-  weight: number; // g
-  price: number;
-  productionDate: string;
-  expiryDate: string;
-  status: 'normal' | 'expiring' | 'expired' | 'out_of_stock';
-}
-
-const defaultInventory: InventoryItem[] = [
-  {
-    id: 'i1',
-    meatId: 'm7', // 鸡胸肉
-    weight: 2000,
-    price: 35.5,
-    productionDate: '2023-09-01',
-    expiryDate: '2024-03-01',
-    status: 'normal'
-  },
-  {
-    id: 'i2',
-    meatId: 'm1', // 猪里脊
-    weight: 500,
-    price: 28.0,
-    productionDate: '2023-08-15',
-    expiryDate: '2023-10-15',
-    status: 'expiring'
-  }
-];
-
-const savedInventory = localStorage.getItem('MOCK_INVENTORY');
-export const MOCK_INVENTORY: InventoryItem[] = savedInventory ? JSON.parse(savedInventory) : defaultInventory;
-
-export const saveInventory = () => {
-  localStorage.setItem('MOCK_INVENTORY', JSON.stringify(MOCK_INVENTORY));
-};
-
-export interface RecipeIngredient {
-  meatId: string;
-  weight: number; // g
-}
-
-export interface RecipeSupplement {
-  supplementId: string;
-  amount: number; // units
-}
-
-export interface Recipe {
-  id: string;
-  name: string;
-  catIds: string[];
-  standard: 'NRC' | 'AAFCO';
-  mode: 'by_need' | 'by_inventory';
-  days: number;
-  ingredients: RecipeIngredient[];
-  supplements: RecipeSupplement[];
-  createdAt: string;
-  isActive: boolean;
-  executedDays: number;
-}
-
-const defaultRecipes: Recipe[] = [
-  {
-    id: 'r1',
-    name: 'Mimi的日常鸡肉餐',
-    catIds: ['c1'],
-    standard: 'NRC',
-    mode: 'by_need',
-    days: 7,
-    ingredients: [
-      { meatId: 'm7', weight: 500 }, // 鸡胸肉
-      { meatId: 'm1', weight: 200 }, // 猪里脊
-      { meatId: 'm11', weight: 50 }, // 鸡肝
-      { meatId: 'm10', weight: 50 }, // 鸡心
-    ],
-    supplements: [
-      { supplementId: 's1', amount: 3 },
-      { supplementId: 's3', amount: 2 },
-      { supplementId: 's7', amount: 1 },
-    ],
-    createdAt: '2023-10-01',
-    isActive: true,
-    executedDays: 3,
-  }
-];
-
-const savedRecipes = localStorage.getItem('MOCK_RECIPES');
-export const MOCK_RECIPES: Recipe[] = savedRecipes ? JSON.parse(savedRecipes) : defaultRecipes;
-
-export const saveRecipes = () => {
-  localStorage.setItem('MOCK_RECIPES', JSON.stringify(MOCK_RECIPES));
-};
+]

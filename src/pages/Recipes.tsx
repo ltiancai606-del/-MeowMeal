@@ -43,6 +43,7 @@ const calculateSupplements = (
   let ingIron = 0;
   let ingZinc = 0;
   let ingTaurine = 0;
+  let ingIodine = 0;
   
   ingredients.forEach(item => {
     const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
@@ -53,6 +54,7 @@ const calculateSupplements = (
       ingIron += (meat.iron / 100) * item.weight;
       ingZinc += (meat.zinc / 100) * item.weight;
       ingTaurine += (meat.taurine / 100) * item.weight;
+      ingIodine += ((meat.iodine || 0) / 100) * item.weight;
     }
   });
 
@@ -78,7 +80,12 @@ const calculateSupplements = (
     if (supp) {
       const amountPerUnit = supp[nutrientKey] as number;
       if (amountPerUnit > 0) {
-        const amount = Number((deficit / amountPerUnit).toFixed(2));
+        let amount = deficit / amountPerUnit;
+        if (supp.unit !== 'g') {
+          amount = Number((Math.ceil(Number(amount.toFixed(4)) * 10) / 10).toFixed(1));
+        } else {
+          amount = Number(amount.toFixed(2));
+        }
         if (amount > 0) {
           newSupplements.push({ supplementId: supp.id, amount });
         }
@@ -118,7 +125,7 @@ const calculateSupplements = (
   }
 
   // 5. Iodine
-  const currentIodinePer1000 = 0; // Meat has no iodine data
+  const currentIodinePer1000 = ingIodine * multiplier;
   if (standardData.iodine && standardData.iodine.min !== null && currentIodinePer1000 < standardData.iodine.min) {
     const deficitIodinePer1000 = standardData.iodine.min - currentIodinePer1000;
     const deficitIodine = deficitIodinePer1000 / multiplier;
@@ -128,7 +135,12 @@ const calculateSupplements = (
   const addDefaultSupp = (type: string, amountPer1000Kcal: number) => {
     const supp = getSuppOfType(type);
     if (supp) {
-      const amount = Number((amountPer1000Kcal / multiplier).toFixed(2));
+      let amount = amountPer1000Kcal / multiplier;
+      if (supp.unit !== 'g') {
+        amount = Number((Math.ceil(Number(amount.toFixed(4)) * 10) / 10).toFixed(1));
+      } else {
+        amount = Number(amount.toFixed(2));
+      }
       if (amount > 0) {
         newSupplements.push({ supplementId: supp.id, amount });
       }
@@ -744,6 +756,18 @@ function RecipeDetail() {
   let totalVe = 0;
   let totalVb1 = 0;
   let totalVb2 = 0;
+  let totalVb3 = 0;
+  let totalVb5 = 0;
+  let totalVb6 = 0;
+  let totalVb7 = 0;
+  let totalVb9 = 0;
+  let totalVb12 = 0;
+  let totalCholine = 0;
+  let totalCopper = 0;
+  let totalManganese = 0;
+  let totalEpa = 0;
+  let totalDha = 0;
+  let totalEpaDha = 0;
   
   const categoryData: Record<string, number> = {};
 
@@ -760,6 +784,28 @@ function RecipeDetail() {
       totalIron += (meat.iron / 100) * item.weight;
       totalZinc += (meat.zinc / 100) * item.weight;
       totalTaurine += (meat.taurine / 100) * item.weight;
+      
+      totalMagnesium += ((meat.magnesium || 0) / 100) * item.weight;
+      totalSodium += ((meat.sodium || 0) / 100) * item.weight;
+      totalIodine += ((meat.iodine || 0) / 100) * item.weight;
+      totalVd += ((meat.vd || 0) / 100) * item.weight;
+      totalVa += ((meat.va || 0) / 100) * item.weight;
+      totalVe += ((meat.ve || 0) / 100) * item.weight;
+      totalVb1 += ((meat.vb1 || 0) / 100) * item.weight;
+      totalVb2 += ((meat.vb2 || 0) / 100) * item.weight;
+      totalVb3 += ((meat.vb3 || 0) / 100) * item.weight;
+      totalVb5 += ((meat.vb5 || 0) / 100) * item.weight;
+      totalVb6 += ((meat.vb6 || 0) / 100) * item.weight;
+      totalVb7 += ((meat.vb7 || 0) / 100) * item.weight;
+      totalVb9 += ((meat.vb9 || 0) / 100) * item.weight;
+      totalVb12 += ((meat.vb12 || 0) / 100) * item.weight;
+      totalPotassium += ((meat.potassium || 0) / 100) * item.weight;
+      totalCholine += ((meat.choline || 0) / 100) * item.weight;
+      totalCopper += ((meat.copper || 0) / 100) * item.weight;
+      totalManganese += ((meat.manganese || 0) / 100) * item.weight;
+      totalEpa += ((meat.epa || 0) / 100) * item.weight;
+      totalDha += ((meat.dha || 0) / 100) * item.weight;
+      totalEpaDha += ((meat.epa_dha || 0) / 100) * item.weight;
       
       categoryData[meat.category] = (categoryData[meat.category] || 0) + item.weight;
     }
@@ -782,6 +828,18 @@ function RecipeDetail() {
       totalVe += (supp.ve || 0) * item.amount;
       totalVb1 += (supp.vb1 || 0) * item.amount;
       totalVb2 += (supp.vb2 || 0) * item.amount;
+      totalVb3 += (supp.vb3 || 0) * item.amount;
+      totalVb5 += (supp.vb5 || 0) * item.amount;
+      totalVb6 += (supp.vb6 || 0) * item.amount;
+      totalVb7 += (supp.vb7 || 0) * item.amount;
+      totalVb9 += (supp.vb9 || 0) * item.amount;
+      totalVb12 += (supp.vb12 || 0) * item.amount;
+      totalCholine += (supp.choline || 0) * item.amount;
+      totalCopper += (supp.copper || 0) * item.amount;
+      totalManganese += (supp.manganese || 0) * item.amount;
+      totalEpa += (supp.epa || 0) * item.amount;
+      totalDha += (supp.dha || 0) * item.amount;
+      totalEpaDha += (supp.epa_dha || 0) * item.amount;
     }
   });
 
@@ -838,6 +896,18 @@ function RecipeDetail() {
     vitamin_e: totalVe * multiplier,
     vb1: totalVb1 * multiplier,
     vb2: totalVb2 * multiplier,
+    vb3: totalVb3 * multiplier,
+    vb5: totalVb5 * multiplier,
+    vb6: totalVb6 * multiplier,
+    vb7: totalVb7 * multiplier,
+    vb9: totalVb9 * multiplier,
+    vb12: totalVb12 * multiplier,
+    choline: totalCholine * multiplier,
+    copper: totalCopper * multiplier,
+    manganese: totalManganese * multiplier,
+    epa: totalEpa * multiplier,
+    dha: totalDha * multiplier,
+    epa_dha: totalEpaDha * multiplier,
   };
 
   const standardData = NUTRITION_STANDARDS[recipe.standard || 'NRC'];
@@ -965,9 +1035,9 @@ function RecipeDetail() {
               ).map(([category, items]) => {
                 const visibleItems = items.filter(item => {
                   const currentVal = (currentNutrients as any)[item.key] || 0;
-                  const hasMeatData = ['protein', 'fat', 'calcium', 'phosphorus', 'ca_p_ratio', 'iron', 'zinc', 'taurine'].includes(item.key);
-                  const isSupplemented = ['vitamin_e', 'vitamin_b', 'iodine', 'vitamin_d', 'vitamin_a', 'vb1', 'vb2', 'vb3', 'vb5', 'vb6', 'vb7', 'vb9', 'vb12', 'choline', 'epa_dha', 'epa', 'dha'].includes(item.key) && currentVal > 0;
-                  return hasMeatData || isSupplemented;
+                  const coreNutrients = ['protein', 'fat', 'calcium', 'phosphorus', 'ca_p_ratio', 'iron', 'zinc', 'taurine'];
+                  const hasMeatData = coreNutrients.includes(item.key);
+                  return hasMeatData || currentVal > 0;
                 });
 
                 if (visibleItems.length === 0) return null;
