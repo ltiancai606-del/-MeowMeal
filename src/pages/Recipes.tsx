@@ -7,6 +7,17 @@ import { useState, useEffect } from 'react';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+const formatSafeDate = (dateStr: string | undefined) => {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '未知时间';
+    return d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return '未知时间';
+  }
+};
+
 const NUTRITION_STANDARDS = {
   NRC: {
     protein: { min: 50, max: null, label: '蛋白质', unit: 'g' },
@@ -61,7 +72,7 @@ const calculateSupplements = (
   const multiplier = ingKcal > 0 ? 1000 / ingKcal : 0;
   const standardData = NUTRITION_STANDARDS[standard];
   
-  const newSupplements: { supplementId: string, amount: number | string }[] = [];
+  const newSupplements: { supplementId: string, amount: number }[] = [];
   
   const getSuppOfType = (type: string) => {
     const existing = existingSupplements.find(s => {
@@ -156,7 +167,10 @@ const calculateSupplements = (
     const supp = SUPPLEMENTS.find(sup => sup.id === s.supplementId);
     if (supp && !coveredTypes.includes(supp.type)) {
       if (!newSupplements.find(ns => ns.supplementId === s.supplementId)) {
-        newSupplements.push(s);
+        newSupplements.push({
+          supplementId: s.supplementId,
+          amount: typeof s.amount === 'string' ? (parseFloat(s.amount) || 0) : s.amount
+        });
       }
     }
   });
@@ -203,6 +217,13 @@ function RecipeList() {
                   )}
                 </div>
                 <p className="text-sm text-stone-500 mb-4">适用猫咪: {cats}</p>
+                
+                {(recipe.startDate || recipe.endDate) && (
+                  <div className="text-xs text-stone-500 mb-4 bg-stone-50 p-2 rounded-lg space-y-1">
+                    {recipe.startDate && <p>开始执行: {formatSafeDate(recipe.startDate)}</p>}
+                    {recipe.endDate && <p>结束执行: {formatSafeDate(recipe.endDate)}</p>}
+                  </div>
+                )}
                 
                 <div className="flex justify-between items-center text-xs text-stone-400">
                   <span>{recipe.standard} 标准 · {recipe.mode === 'by_need' ? '按需定制' : '按库存反推'}</span>
@@ -289,6 +310,8 @@ function CreateOrEditRecipe() {
       createdAt: existingRecipe?.createdAt || new Date().toISOString().split('T')[0],
       isActive: existingRecipe ? existingRecipe.isActive : false,
       executedDays: existingRecipe ? existingRecipe.executedDays : 0,
+      startDate: existingRecipe?.startDate,
+      endDate: existingRecipe?.endDate,
     };
 
     if (isEditing) {
@@ -459,7 +482,7 @@ function RecipeDetail() {
   const [showFullNutritionModal, setShowFullNutritionModal] = useState(false);
   const [copyName, setCopyName] = useState('');
 
-  const [isEditingIngredients, setIsEditingIngredients] = useState(false);
+  const [isEditingRecipe, setIsEditingRecipe] = useState(false);
   const [editedIngredients, setEditedIngredients] = useState<{meatId: string, weight: number | string}[]>([]);
   const [showIngredientPicker, setShowIngredientPicker] = useState(false);
   const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
@@ -469,7 +492,6 @@ function RecipeDetail() {
   const [pickerSearchQuery, setPickerSearchQuery] = useState('');
   const [pickerActiveSidebarGroup, setPickerActiveSidebarGroup] = useState<string>('');
 
-  const [isEditingSupplements, setIsEditingSupplements] = useState(false);
   const [editedSupplements, setEditedSupplements] = useState<{supplementId: string, amount: number | string}[]>([]);
   const [showSupplementPicker, setShowSupplementPicker] = useState(false);
   const [replacingSupplementIndex, setReplacingSupplementIndex] = useState<number | null>(null);
@@ -564,6 +586,8 @@ function RecipeDetail() {
       isActive: false,
       createdAt: new Date().toISOString().split('T')[0],
       executedDays: 0,
+      startDate: undefined,
+      endDate: undefined,
     };
     MOCK_RECIPES.push(newRecipe);
     saveRecipes();
@@ -590,25 +614,34 @@ function RecipeDetail() {
     navigate(`/recipes/edit/${recipe.id}`);
   };
 
-  const handleEditIngredients = () => {
+  const handleEditRecipe = () => {
     setEditedIngredients(recipe.ingredients.map(i => ({ ...i })));
-    setIsEditingIngredients(true);
+    setEditedSupplements(recipe.supplements.map(s => ({ ...s })));
+    setIsEditingRecipe(true);
   };
 
-  const handleCancelEditIngredients = () => {
-    setIsEditingIngredients(false);
+  const handleCancelEditRecipe = () => {
+    setIsEditingRecipe(false);
   };
 
-  const handleConfirmIngredients = () => {
+  const handleSaveRecipe = () => {
     const validIngredients = editedIngredients.map(i => ({
       meatId: i.meatId,
       weight: typeof i.weight === 'string' ? (parseFloat(i.weight) || 0) : i.weight
     })).filter(i => i.weight > 0);
     
     recipe.ingredients = validIngredients;
+    
+    const validSupplements = editedSupplements.map(s => ({
+      supplementId: s.supplementId,
+      amount: typeof s.amount === 'string' ? (parseFloat(s.amount) || 0) : s.amount
+    })).filter(s => s.amount > 0);
+
+    recipe.supplements = validSupplements;
+    
     saveRecipes();
     setForceRender(prev => prev + 1);
-    setIsEditingIngredients(false);
+    setIsEditingRecipe(false);
   };
 
   const openReplacePicker = (index: number, category: string) => {
@@ -653,27 +686,6 @@ function RecipeDetail() {
     );
   };
 
-  const handleEditSupplements = () => {
-    setEditedSupplements(recipe.supplements.map(s => ({ ...s })));
-    setIsEditingSupplements(true);
-  };
-
-  const handleCancelEditSupplements = () => {
-    setIsEditingSupplements(false);
-  };
-
-  const handleConfirmSupplements = () => {
-    const validSupplements = editedSupplements.map(s => ({
-      supplementId: s.supplementId,
-      amount: typeof s.amount === 'string' ? (parseFloat(s.amount) || 0) : s.amount
-    })).filter(s => s.amount > 0);
-    
-    recipe.supplements = validSupplements;
-    saveRecipes();
-    setForceRender(prev => prev + 1);
-    setIsEditingSupplements(false);
-  };
-
   const openReplaceSupplementPicker = (index: number) => {
     setReplacingSupplementIndex(index);
     setPickerSelectedSupplementIds([editedSupplements[index].supplementId]);
@@ -714,13 +726,16 @@ function RecipeDetail() {
     );
   };
 
-  const currentIngredients = isEditingIngredients ? editedIngredients : recipe.ingredients;
-  const currentSupplements = isEditingSupplements ? editedSupplements : recipe.supplements;
-
+  const currentIngredients = isEditingRecipe ? editedIngredients : recipe.ingredients;
+  
   const parsedIngredients = currentIngredients.map(i => ({
     ...i,
     weight: typeof i.weight === 'string' ? (parseFloat(i.weight) || 0) : i.weight
   }));
+
+  const currentSupplements = isEditingRecipe 
+    ? editedSupplements 
+    : recipe.supplements;
 
   const parsedSupplements = currentSupplements.map(s => ({
     ...s,
@@ -728,10 +743,10 @@ function RecipeDetail() {
   }));
 
   const handleAutoCalculateSupplements = () => {
-    const currentSupps = isEditingSupplements ? [...editedSupplements] : recipe.supplements.map(s => ({ ...s }));
+    const currentSupps = isEditingRecipe ? [...editedSupplements] : recipe.supplements.map(s => ({ ...s }));
     const newSupplements = calculateSupplements(parsedIngredients, (recipe.standard as 'NRC' | 'AAFCO') || 'NRC', currentSupps);
     setEditedSupplements(newSupplements);
-    setIsEditingSupplements(true);
+    setIsEditingRecipe(true);
   };
 
   const totalWeight = parsedIngredients.reduce((sum, item) => sum + item.weight, 0);
@@ -859,10 +874,21 @@ function RecipeDetail() {
   ];
 
   const handleToggleActive = () => {
+    const now = new Date().toISOString();
     if (!recipe.isActive) {
-      MOCK_RECIPES.forEach(r => r.isActive = false);
+      MOCK_RECIPES.forEach(r => {
+        if (r.isActive) {
+          r.isActive = false;
+          r.endDate = now;
+        }
+      });
+      recipe.isActive = true;
+      recipe.startDate = now;
+      recipe.endDate = undefined;
+    } else {
+      recipe.isActive = false;
+      recipe.endDate = now;
     }
-    recipe.isActive = !recipe.isActive;
     saveRecipes();
     setForceRender(prev => prev + 1);
   };
@@ -1094,8 +1120,23 @@ function RecipeDetail() {
         </div>
       )}
 
+      {(recipe.startDate || recipe.endDate) && (
+        <div className="text-sm text-stone-500 mb-4 bg-stone-50 p-3 rounded-xl space-y-1 border border-stone-100">
+          {recipe.startDate && <p>开始执行: {formatSafeDate(recipe.startDate)}</p>}
+          {recipe.endDate && <p>结束执行: {formatSafeDate(recipe.endDate)}</p>}
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100">
-        <h2 className="text-lg font-bold text-stone-800 mb-1">{recipe.name}</h2>
+        <div className="flex justify-between items-start mb-1">
+          <h2 className="text-lg font-bold text-stone-800">{recipe.name}</h2>
+          {recipe.isActive && (
+            <span className="flex items-center gap-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full shrink-0">
+              <Activity className="w-3 h-3" />
+              执行中
+            </span>
+          )}
+        </div>
         <p className="text-sm text-stone-500 mb-4">
           总重量: {totalWeight}g · 周期: {recipe.days}天
         </p>
@@ -1355,17 +1396,9 @@ function RecipeDetail() {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-stone-800">食材清单</h3>
-          {isEditingIngredients ? (
-            <div className="flex gap-2">
-              <button onClick={handleCancelEditIngredients} className="text-xs text-stone-500 font-medium px-2 py-1 hover:bg-stone-100 rounded">取消</button>
-              <button onClick={handleConfirmIngredients} className="text-xs text-white bg-emerald-600 font-medium px-2 py-1 hover:bg-emerald-700 rounded">确认</button>
-            </div>
-          ) : (
-            <button onClick={handleEditIngredients} className="text-xs text-emerald-600 font-medium px-2 py-1 hover:bg-emerald-50 rounded">编辑</button>
-          )}
         </div>
         
-        {isEditingIngredients ? (
+        {isEditingRecipe ? (
           <div className="space-y-3">
             {editedIngredients.map((item, idx) => {
               const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
@@ -1552,25 +1585,14 @@ function RecipeDetail() {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-stone-800">营养剂清单</h3>
-          {isEditingSupplements ? (
-            <div className="flex gap-2">
-              <button onClick={handleAutoCalculateSupplements} className="text-xs text-emerald-600 bg-emerald-50 font-medium px-2 py-1 hover:bg-emerald-100 rounded flex items-center gap-1">
-                <Activity className="w-3 h-3" /> 智能计算
-              </button>
-              <button onClick={handleCancelEditSupplements} className="text-xs text-stone-500 font-medium px-2 py-1 hover:bg-stone-100 rounded">取消</button>
-              <button onClick={handleConfirmSupplements} className="text-xs text-white bg-emerald-600 font-medium px-2 py-1 hover:bg-emerald-700 rounded">确认</button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <button onClick={handleAutoCalculateSupplements} className="text-xs text-emerald-600 bg-emerald-50 font-medium px-2 py-1 hover:bg-emerald-100 rounded flex items-center gap-1">
-                <Activity className="w-3 h-3" /> 智能计算
-              </button>
-              <button onClick={handleEditSupplements} className="text-xs text-emerald-600 font-medium px-2 py-1 hover:bg-emerald-50 rounded">编辑</button>
-            </div>
+          {isEditingRecipe && (
+            <button onClick={handleAutoCalculateSupplements} className="text-xs text-emerald-600 bg-emerald-50 font-medium px-2 py-1 hover:bg-emerald-100 rounded flex items-center gap-1">
+              <Activity className="w-3 h-3" /> 智能计算
+            </button>
           )}
         </div>
         
-        {isEditingSupplements ? (
+        {isEditingRecipe ? (
           <div className="space-y-3">
             {editedSupplements.map((item, idx) => {
               const supp = SUPPLEMENTS.find(s => s.id === item.supplementId);
@@ -1624,11 +1646,29 @@ function RecipeDetail() {
         )}
       </div>
 
-      <div className="mt-8">
-        <button onClick={handleToggleActive} className={`w-full text-white px-4 py-3 rounded-xl font-medium shadow-lg transition-colors flex items-center justify-center gap-2 ${recipe.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-stone-900 hover:bg-stone-800'}`}>
-          <Activity className="w-5 h-5" />
-          {recipe.isActive ? '停止执行' : '开始执行食谱'}
-        </button>
+      <div className="mt-8 space-y-3">
+        {isEditingRecipe ? (
+          <div className="flex gap-3">
+            <button onClick={handleCancelEditRecipe} className="w-1/3 bg-white text-stone-600 border border-stone-200 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-stone-50 transition-colors flex items-center justify-center">
+              取消
+            </button>
+            <button onClick={handleSaveRecipe} className="w-2/3 text-white px-4 py-3 rounded-xl font-medium shadow-lg transition-colors flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700">
+              <Save className="w-5 h-5" />
+              保存修改
+            </button>
+          </div>
+        ) : (
+          <>
+            <button onClick={handleEditRecipe} className="w-full bg-white text-emerald-600 border border-emerald-600 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
+              <Edit2 className="w-5 h-5" />
+              编辑食谱
+            </button>
+            <button onClick={handleToggleActive} className={`w-full text-white px-4 py-3 rounded-xl font-medium shadow-lg transition-colors flex items-center justify-center gap-2 ${recipe.isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-stone-900 hover:bg-stone-800'}`}>
+              <Activity className="w-5 h-5" />
+              {recipe.isActive ? '停止执行' : '开始执行食谱'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -3,13 +3,92 @@ import { Plus, Camera, Search, Filter, ChevronRight, Trash2, X, Edit2, Loader2 }
 import { MOCK_INVENTORY, MEAT_DATABASE, saveInventory } from '../data/mock';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '../lib/utils';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
+
+function SearchableMeatSelect({ value, onChange }: { value: string, onChange: (val: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const selectedMeat = MEAT_DATABASE.find(m => m.id === value);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredMeats = MEAT_DATABASE.filter(m => 
+    m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <div
+        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer flex justify-between items-center"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={selectedMeat ? 'text-stone-900' : 'text-stone-400'}>
+          {selectedMeat ? selectedMeat.name : '请选择食材...'}
+        </span>
+        <ChevronRight className={cn("w-4 h-4 transition-transform text-stone-400", isOpen ? "rotate-90" : "rotate-90")} style={{ transform: isOpen ? 'rotate(-90deg)' : 'rotate(90deg)' }} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-stone-200 rounded-xl shadow-lg max-h-60 flex flex-col">
+          <div className="p-2 border-b border-stone-100 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+              <input
+                type="text"
+                className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="搜索食材关键字..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="p-1 overflow-y-auto flex-1">
+            {filteredMeats.length === 0 ? (
+              <div className="p-3 text-sm text-stone-500 text-center">未找到匹配食材</div>
+            ) : (
+              filteredMeats.map(meat => (
+                <div
+                  key={meat.id}
+                  className={cn(
+                    "p-3 text-sm rounded-lg cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors",
+                    value === meat.id ? "bg-emerald-50 text-emerald-700 font-medium" : "text-stone-700"
+                  )}
+                  onClick={() => {
+                    onChange(meat.id);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                >
+                  {meat.name}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function InventoryList() {
   const [, setForceRender] = useState(0);
   const [showAddOptions, setShowAddOptions] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<any>(null);
   const navigate = useNavigate();
 
   const confirmDelete = () => {
@@ -26,6 +105,24 @@ function InventoryList() {
 
   const handleDelete = (id: string) => {
     setItemToDelete(id);
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingItem(item.id);
+    setEditFormData({ ...item });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingItem && editFormData) {
+      const index = MOCK_INVENTORY.findIndex(i => i.id === editingItem);
+      if (index > -1) {
+        MOCK_INVENTORY[index] = { ...editFormData };
+        saveInventory();
+        setForceRender(prev => prev + 1);
+      }
+      setEditingItem(null);
+      setEditFormData(null);
+    }
   };
 
   return (
@@ -59,7 +156,19 @@ function InventoryList() {
           const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
           if (!meat) return null;
           
-          const daysLeft = differenceInDays(new Date(item.expiryDate), new Date());
+          let daysLeft = 999;
+          let formattedExpiryDate = '未知';
+          
+          try {
+            const expiryDateObj = new Date(item.expiryDate);
+            if (!isNaN(expiryDateObj.getTime())) {
+              daysLeft = differenceInDays(expiryDateObj, new Date());
+              formattedExpiryDate = format(expiryDateObj, 'yyyy-MM-dd');
+            }
+          } catch (e) {
+            // Ignore invalid date
+          }
+
           let statusColor = 'text-emerald-600 bg-emerald-50 border-emerald-200';
           let statusText = '正常';
           
@@ -89,12 +198,18 @@ function InventoryList() {
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <p className="text-xs text-stone-500">
-                    到期: {format(new Date(item.expiryDate), 'yyyy-MM-dd')}
+                    到期: {formattedExpiryDate}
                   </p>
                   <div className="flex items-center gap-2">
                     <span className={cn("text-[10px] px-2 py-0.5 rounded-full", statusColor)}>
                       {statusText}
                     </span>
+                    <button 
+                      onClick={() => handleEdit(item)}
+                      className="p-1 text-stone-400 hover:text-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                     <button 
                       onClick={() => handleDelete(item.id)}
                       className="p-1 text-stone-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
@@ -159,6 +274,89 @@ function InventoryList() {
         </div>
       )}
 
+      {editingItem && editFormData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-stone-900">编辑食材</h3>
+              <button 
+                onClick={() => setEditingItem(null)}
+                className="p-2 text-stone-400 hover:text-stone-600 rounded-full hover:bg-stone-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1">食材种类</label>
+                <SearchableMeatSelect 
+                  value={editFormData.meatId}
+                  onChange={(val) => setEditFormData({...editFormData, meatId: val})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">重量 (g)</label>
+                  <input 
+                    type="number" 
+                    value={editFormData.weight}
+                    onChange={(e) => setEditFormData({...editFormData, weight: parseFloat(e.target.value) || 0})}
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">价格 (元)</label>
+                  <input 
+                    type="number" 
+                    value={editFormData.price}
+                    onChange={(e) => setEditFormData({...editFormData, price: parseFloat(e.target.value) || 0})}
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">生产日期</label>
+                  <input 
+                    type="date" 
+                    value={editFormData.productionDate}
+                    onChange={(e) => setEditFormData({...editFormData, productionDate: e.target.value})}
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">过期日期</label>
+                  <input 
+                    type="date" 
+                    value={editFormData.expiryDate}
+                    onChange={(e) => setEditFormData({...editFormData, expiryDate: e.target.value})}
+                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button 
+                onClick={() => setEditingItem(null)}
+                className="flex-1 p-3 bg-stone-100 text-stone-700 rounded-xl font-medium hover:bg-stone-200 transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="flex-1 p-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+              >
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {itemToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm animate-in zoom-in-95">
@@ -203,8 +401,10 @@ function UploadReceipt() {
           const base64Data = (reader.result as string).split(',')[1];
           const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
           
+          const meatNames = MEAT_DATABASE.map(m => m.name).join('、');
+          
           const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-3.1-pro-preview',
             contents: {
               parts: [
                 {
@@ -214,7 +414,25 @@ function UploadReceipt() {
                   },
                 },
                 {
-                  text: '请解析图片中的食材信息，返回JSON格式。注意：1斤 = 500克 = 0.5kg。同一张图片中可能包含多个食材，请提取所有食材。在中文语境下，猪腰=猪肾，腰是肾的意思，蛋=睾丸，请注意识别并转换为标准名称（如猪肾、猪睾丸等）。返回一个包含 items 数组的 JSON，每个 item 包含以下字段：meatName(食材种类名称，如猪里脊、鸡胸肉等), weight(重量，单位克(g)，数字，如果是斤请乘以500，如果是kg请乘以1000), price(价格，数字), productionDate(生产日期，YYYY-MM-DD), expiryDate(过期日期，YYYY-MM-DD)。如果无法识别，请尽量猜测或留空。',
+                  text: `请作为一位专业的生鲜标签解析助手，仔细识别图片中的食材信息（如超市小票、生鲜包装标签等），并返回JSON格式。
+
+关键规则：
+1. 重量单位转换：
+   - 1kg = 1000克
+   - 1斤 = 500克
+   - 1两 = 50克
+   - 最终输出的 weight 必须是克(g)为单位的数字。
+2. 价格：提取总价或单价，输出为数字。
+3. 日期格式：
+   - 提取生产日期 (productionDate) 和保质期/过期日期 (expiryDate)。
+   - 格式必须为 YYYY-MM-DD。如果只有月日，请结合当前年份推断。
+4. 食材名称标准化：
+   - 必须从以下标准食材库中选择最匹配的名称：${meatNames}。
+   - 别名转换：猪腰/羊腰 -> 猪腰/猪肾 或 羊肾，猪蛋/羊蛋 -> 猪睾丸，猪肚 -> 猪胃。
+   - 去除多余的品牌名或修饰词（如"冷鲜"、"散装"、"特价"等）。
+5. 多物品识别：同一张图片中可能包含多个食材标签，请提取所有食材。
+
+返回一个包含 items 数组的 JSON，每个 item 包含：meatName(食材种类名称，必须是标准食材库中的名称), weight(重量，克), price(价格), productionDate(生产日期), expiryDate(过期日期)。如果某些字段无法识别，请留空或设为null。`,
                 },
               ],
             },
@@ -247,9 +465,14 @@ function UploadReceipt() {
           const items = (result.items || []).map((item: any) => {
             let meatId = MEAT_DATABASE[0].id;
             if (item.meatName) {
-              const meat = MEAT_DATABASE.find(m => 
-                m.name.includes(item.meatName) || item.meatName.includes(m.name)
-              );
+              // Try exact match first
+              let meat = MEAT_DATABASE.find(m => m.name === item.meatName);
+              // Try partial match
+              if (!meat) {
+                meat = MEAT_DATABASE.find(m => 
+                  m.name.includes(item.meatName) || item.meatName.includes(m.name)
+                );
+              }
               if (meat) meatId = meat.id;
             }
             return {
@@ -418,15 +641,10 @@ function ManualEntry() {
             
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1">食材种类 {index + 1}</label>
-              <select 
+              <SearchableMeatSelect 
                 value={item.meatId}
-                onChange={(e) => handleUpdateItem(index, 'meatId', e.target.value)}
-                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                {MEAT_DATABASE.map(meat => (
-                  <option key={meat.id} value={meat.id}>{meat.name}</option>
-                ))}
-              </select>
+                onChange={(val) => handleUpdateItem(index, 'meatId', val)}
+              />
             </div>
             
             <div className="grid grid-cols-2 gap-4">

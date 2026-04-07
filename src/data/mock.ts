@@ -2012,6 +2012,8 @@ export interface Recipe {
   createdAt: string;
   isActive: boolean;
   executedDays: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 const defaultRecipes: Recipe[] = [
