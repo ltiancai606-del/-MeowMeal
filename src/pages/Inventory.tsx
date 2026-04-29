@@ -30,7 +30,7 @@ function SearchableMeatSelect({ value, onChange }: { value: string, onChange: (v
   return (
     <div className="relative" ref={wrapperRef}>
       <div
-        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer flex justify-between items-center"
+        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20 cursor-pointer flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={selectedMeat ? 'text-stone-900' : 'text-stone-400'}>
@@ -46,7 +46,7 @@ function SearchableMeatSelect({ value, onChange }: { value: string, onChange: (v
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
               <input
                 type="text"
-                className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-8 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 placeholder="搜索食材关键字..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -63,8 +63,8 @@ function SearchableMeatSelect({ value, onChange }: { value: string, onChange: (v
                 <div
                   key={meat.id}
                   className={cn(
-                    "p-3 text-sm rounded-lg cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors",
-                    value === meat.id ? "bg-emerald-50 text-emerald-700 font-medium" : "text-stone-700"
+                    "p-3 text-sm rounded-lg cursor-pointer hover:bg-[#FFFAF5] hover:text-orange-600 transition-colors",
+                    value === meat.id ? "bg-[#FFFAF5] text-orange-600 font-medium" : "text-stone-700"
                   )}
                   onClick={() => {
                     onChange(meat.id);
@@ -85,300 +85,203 @@ function SearchableMeatSelect({ value, onChange }: { value: string, onChange: (v
 
 function InventoryList() {
   const [, setForceRender] = useState(0);
-  const [showAddOptions, setShowAddOptions] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
-  const [editingItem, setEditingItem] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
 
-  const confirmDelete = () => {
-    if (itemToDelete) {
-      const index = MOCK_INVENTORY.findIndex(item => item.id === itemToDelete);
-      if (index > -1) {
-        MOCK_INVENTORY.splice(index, 1);
-        saveInventory();
-        setForceRender(prev => prev + 1);
-      }
-      setItemToDelete(null);
+  const normalItems = MOCK_INVENTORY.filter(i => differenceInDays(new Date(i.expiryDate), new Date()) > 30);
+  const expiringItems = MOCK_INVENTORY.filter(i => differenceInDays(new Date(i.expiryDate), new Date()) >= 0 && differenceInDays(new Date(i.expiryDate), new Date()) <= 30);
+  const expiredItems = MOCK_INVENTORY.filter(i => differenceInDays(new Date(i.expiryDate), new Date()) < 0);
+
+  const getFilteredItems = () => {
+    switch (activeTab) {
+      case 'normal': return normalItems;
+      case 'expiring': return expiringItems;
+      case 'expired': return expiredItems;
+      default: return MOCK_INVENTORY;
     }
   };
 
-  const handleDelete = (id: string) => {
-    setItemToDelete(id);
-  };
-
-  const handleEdit = (item: any) => {
-    setEditingItem(item.id);
-    setEditFormData({ ...item });
-  };
-
-  const handleSaveEdit = () => {
-    if (editingItem && editFormData) {
-      const index = MOCK_INVENTORY.findIndex(i => i.id === editingItem);
-      if (index > -1) {
-        MOCK_INVENTORY[index] = { ...editFormData };
-        saveInventory();
-        setForceRender(prev => prev + 1);
-      }
-      setEditingItem(null);
-      setEditFormData(null);
-    }
-  };
+  const filteredItems = getFilteredItems();
 
   return (
-    <div className="p-4 space-y-4 bg-stone-50 min-h-full pb-24">
+    <div className="min-h-full bg-stone-50 flex flex-col pt-12 pb-24 px-5">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-stone-900">冰箱库存</h1>
-        <button 
-          onClick={() => setShowAddOptions(true)}
-          className="bg-emerald-600 text-white p-2 rounded-full shadow-sm hover:bg-emerald-700"
-        >
-          <Camera className="w-5 h-5" />
-        </button>
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-stone-800">
+          <span className="text-blue-500 bg-blue-50 p-1.5 rounded-xl">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6M4 6l4-4h8l4 4M10 10v6M14 10v6"></path></svg>
+          </span> 
+          冰箱库存
+        </h1>
+        <div className="flex gap-2 text-sm font-medium">
+          <button 
+            onClick={() => navigate('/inventory/upload')}
+            className="bg-blue-50 text-blue-500 px-3 py-2 rounded-full hover:bg-blue-100 flex items-center gap-1 transition-colors"
+          >
+            <Camera className="w-4 h-4" /> OCR 入库
+          </button>
+          <button 
+            onClick={() => navigate('/inventory/manual')}
+            className="bg-[#FF7B4A] text-white px-3 py-2 rounded-full hover:bg-orange-600 flex items-center gap-1 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> 手动添加
+          </button>
+        </div>
       </header>
 
-      <div className="flex gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-          <input 
-            type="text" 
-            placeholder="搜索食材..." 
-            className="w-full pl-9 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-stone-400" />
         </div>
-        <button className="p-2 bg-white border border-stone-200 rounded-xl text-stone-600 hover:bg-stone-50">
-          <Filter className="w-5 h-5" />
+        <input 
+          type="text" 
+          placeholder="搜索食材..." 
+          className="w-full bg-white border border-stone-100 rounded-2xl py-3 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
+        />
+        <div className="absolute inset-y-0 right-3 flex items-center">
+          <Filter className="h-4 w-4 text-stone-400 cursor-pointer hover:text-stone-600" />
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none mb-4 snap-x">
+        <button 
+          onClick={() => setActiveTab('all')}
+          className={cn(
+            "shrink-0 snap-center px-4 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[64px] border transition-colors",
+            activeTab === 'all' ? "bg-[#FF7B4A] border-orange-500 text-white" : "bg-white border-stone-100 text-stone-500"
+          )}
+        >
+          <span className="text-xl font-bold mb-0.5">{MOCK_INVENTORY.length}</span>
+          <span className="text-[10px] font-medium opacity-90">全部</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('normal')}
+          className={cn(
+            "shrink-0 snap-center px-4 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[64px] border transition-colors",
+            activeTab === 'normal' ? "bg-[#FFFAF5] border-emerald-200 text-[#FF7B4A]" : "bg-white border-stone-100 text-stone-500 hover:bg-stone-50"
+          )}
+        >
+          <span className={cn("text-xl font-bold mb-0.5", activeTab !== 'normal' && "text-emerald-500")}>{normalItems.length}</span>
+          <span className={cn("text-[10px] font-medium", activeTab !== 'normal' && "text-emerald-500")}>正常</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('expiring')}
+          className={cn(
+            "shrink-0 snap-center px-4 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[64px] border transition-colors",
+            activeTab === 'expiring' ? "bg-amber-50 border-amber-200 text-amber-600" : "bg-white border-stone-100 text-stone-500 hover:bg-stone-50"
+          )}
+        >
+          <span className={cn("text-xl font-bold mb-0.5", activeTab !== 'expiring' && "text-amber-500")}>{expiringItems.length}</span>
+          <span className={cn("text-[10px] font-medium", activeTab !== 'expiring' && "text-amber-500")}>临期</span>
+        </button>
+        <button 
+          onClick={() => setActiveTab('expired')}
+          className={cn(
+            "shrink-0 snap-center px-4 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[64px] border transition-colors",
+            activeTab === 'expired' ? "bg-rose-50 border-rose-200 text-rose-600" : "bg-white border-stone-100 text-stone-500 hover:bg-stone-50"
+          )}
+        >
+          <span className={cn("text-xl font-bold mb-0.5", activeTab !== 'expired' && "text-rose-500")}>{expiredItems.length}</span>
+          <span className={cn("text-[10px] font-medium", activeTab !== 'expired' && "text-rose-500")}>已过期</span>
+        </button>
+        <button className="shrink-0 snap-center bg-white border border-stone-100 px-4 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[64px] text-purple-500 hover:bg-stone-50 transition-colors">
+          <span className="text-xl font-bold mb-0.5">1</span>
+          <span className="text-[10px] font-medium">库存不足</span>
         </button>
       </div>
 
-      <div className="space-y-3">
-        {MOCK_INVENTORY.map(item => {
+      {(expiringItems.length > 0 || expiredItems.length > 0) && (
+        <div className="bg-amber-50 rounded-xl p-3 mb-6 flex items-center gap-2 border border-amber-100">
+          <span className="text-amber-500 text-sm">⚠️</span>
+          <p className="text-xs text-amber-700 font-medium tracking-wide">
+            {expiringItems.length > 0 && `${expiringItems.length} 种食材即将过期，`}
+            {expiredItems.length > 0 && `${expiredItems.length} 种已过期，`}请尽快处理
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {filteredItems.map(item => {
           const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
           if (!meat) return null;
           
           let daysLeft = 999;
-          let formattedExpiryDate = '未知';
-          
           try {
             const expiryDateObj = new Date(item.expiryDate);
             if (!isNaN(expiryDateObj.getTime())) {
               daysLeft = differenceInDays(expiryDateObj, new Date());
-              formattedExpiryDate = format(expiryDateObj, 'yyyy-MM-dd');
             }
-          } catch (e) {
-            // Ignore invalid date
-          }
+          } catch (e) {}
 
-          let statusColor = 'text-emerald-600 bg-emerald-50 border-emerald-200';
-          let statusText = '正常';
+          let statusTag = null;
+          let iconBg = "bg-stone-100";
+          let iconDot = "bg-stone-400";
           
           if (daysLeft < 0) {
-            statusColor = 'text-red-600 bg-red-50 border-red-200';
-            statusText = '已过期';
+            statusTag = <span className="text-[10px] bg-rose-50 text-rose-500 px-1.5 py-0.5 rounded font-medium border border-rose-100">已过期</span>;
+            iconBg = "bg-rose-50";
+            iconDot = "bg-rose-600";
           } else if (daysLeft <= 30) {
-            statusColor = 'text-amber-600 bg-amber-50 border-amber-200';
-            statusText = '临期';
+            statusTag = <span className="text-[10px] bg-amber-50 text-amber-500 px-1.5 py-0.5 rounded font-medium border border-amber-100">临期</span>;
+            iconBg = "bg-orange-50";
+            iconDot = "bg-[#FF7B4A]";
+          } else {
+            statusTag = <span className="text-[10px] border border-emerald-200 text-emerald-500 px-1.5 py-0.5 rounded font-medium">正常</span>;
+            iconBg = "bg-[#FFFAF5]";
+            iconDot = "bg-[#FFFAF5]0";
+          }
+
+          if(meat.name.includes('猪心') || meat.name.includes('牛心') || meat.name.includes('内脏')) {
+            iconBg = "bg-purple-50";
+            iconDot = "bg-purple-500";
+          }
+
+          if(meat.name.includes('鱼') || meat.name.includes('贝')) {
+             iconBg = "bg-blue-50";
+             iconDot = "bg-blue-500";
+          }
+          if(meat.name.includes('鸡肝') || meat.name.includes('猪肝')) {
+             iconBg = "bg-stone-100";
+             iconDot = "bg-stone-600";
+          }
+
+          let emoji = '🥩';
+          switch(meat.category) {
+            case 'white_meat': emoji = '🍗'; break;
+            case 'red_meat': emoji = '🥩'; break;
+            case 'heart': emoji = '❤️'; break;
+            case 'fish': emoji = '🐟'; break;
+            case 'other': emoji = '🍖'; break;
           }
 
           return (
-            <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex items-center gap-4">
-              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold border", statusColor)}>
-                {meat.category === 'red_meat' ? '红肉' : 
-                 meat.category === 'white_meat' ? '白肉' : 
-                 meat.category === 'fish' ? '鱼类' : 
-                 meat.category === 'liver' ? '肝脏' :
-                 meat.category === 'heart' ? '心脏' :
-                 meat.category === 'mussel' ? '青口贝' : '内脏'}
+            <div key={item.id} className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50 flex items-center gap-4 transition-colors hover:bg-stone-50 cursor-pointer" onClick={() => navigate('/inventory/manual')}>
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-2xl", iconBg)}>
+                {emoji}
               </div>
               
               <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-semibold text-stone-800">{meat.name}</h3>
-                  <span className="text-sm font-medium text-stone-900">{item.weight}g</span>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-stone-800">{meat.name}</h3>
+                  {statusTag}
                 </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-stone-500">
-                    到期: {formattedExpiryDate}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className={cn("text-[10px] px-2 py-0.5 rounded-full", statusColor)}>
-                      {statusText}
-                    </span>
-                    <button 
-                      onClick={() => handleEdit(item)}
-                      className="p-1 text-stone-400 hover:text-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(item.id)}
-                      className="p-1 text-stone-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="text-[11px] text-stone-500 mb-2">
+                   {meat.category === 'red_meat' ? '红肉' : meat.category === 'white_meat' ? '白肉' : meat.category === 'fish' ? '鱼类' : '内脏'} · {meat.name.split('·')[1] || '无'}
+                </div>
+                <div className="flex items-center gap-3 text-[11px] text-stone-400 font-medium">
+                  <span>库存 {item.weight}g</span>
+                  <span>¥{item.price}</span>
+                  <span className="flex items-center gap-0.5">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    还剩 {Math.max(0, daysLeft)} 天
+                  </span>
                 </div>
               </div>
+              
+              <ChevronRight className="w-5 h-5 text-stone-300" />
             </div>
           );
         })}
       </div>
-
-      {showAddOptions && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50 sm:items-center sm:justify-center">
-          <div className="bg-white w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-4 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-stone-900">添加食材</h3>
-              <button 
-                onClick={() => setShowAddOptions(false)}
-                className="p-2 text-stone-400 hover:text-stone-600 rounded-full hover:bg-stone-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              <button 
-                onClick={() => {
-                  setShowAddOptions(false);
-                  navigate('/inventory/upload');
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 transition-colors"
-              >
-                <div className="bg-white p-2 rounded-full shadow-sm">
-                  <Camera className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold">拍照上传</div>
-                  <div className="text-xs opacity-80">智能识别小票或包装信息</div>
-                </div>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setShowAddOptions(false);
-                  navigate('/inventory/manual');
-                }}
-                className="w-full flex items-center gap-3 p-4 bg-stone-50 text-stone-700 rounded-xl hover:bg-stone-100 transition-colors"
-              >
-                <div className="bg-white p-2 rounded-full shadow-sm">
-                  <Edit2 className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold">手动录入</div>
-                  <div className="text-xs opacity-80">手动选择食材并填写信息</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {editingItem && editFormData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 animate-in zoom-in-95">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-stone-900">编辑食材</h3>
-              <button 
-                onClick={() => setEditingItem(null)}
-                className="p-2 text-stone-400 hover:text-stone-600 rounded-full hover:bg-stone-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-stone-700 mb-1">食材种类</label>
-                <SearchableMeatSelect 
-                  value={editFormData.meatId}
-                  onChange={(val) => setEditFormData({...editFormData, meatId: val})}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">重量 (g)</label>
-                  <input 
-                    type="number" 
-                    value={editFormData.weight}
-                    onChange={(e) => setEditFormData({...editFormData, weight: parseFloat(e.target.value) || 0})}
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">价格 (元)</label>
-                  <input 
-                    type="number" 
-                    value={editFormData.price}
-                    onChange={(e) => setEditFormData({...editFormData, price: parseFloat(e.target.value) || 0})}
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">生产日期</label>
-                  <input 
-                    type="date" 
-                    value={editFormData.productionDate}
-                    onChange={(e) => setEditFormData({...editFormData, productionDate: e.target.value})}
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-1">过期日期</label>
-                  <input 
-                    type="date" 
-                    value={editFormData.expiryDate}
-                    onChange={(e) => setEditFormData({...editFormData, expiryDate: e.target.value})}
-                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button 
-                onClick={() => setEditingItem(null)}
-                className="flex-1 p-3 bg-stone-100 text-stone-700 rounded-xl font-medium hover:bg-stone-200 transition-colors"
-              >
-                取消
-              </button>
-              <button 
-                onClick={handleSaveEdit}
-                className="flex-1 p-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
-              >
-                保存
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {itemToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-stone-900 mb-2">确认删除</h3>
-            <p className="text-stone-500 mb-6">确定要删除这个食材吗？此操作无法撤销。</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setItemToDelete(null)}
-                className="flex-1 py-2.5 rounded-xl font-medium bg-stone-100 text-stone-700 hover:bg-stone-200 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 py-2.5 rounded-xl font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
-              >
-                确认删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -512,7 +415,7 @@ function UploadReceipt() {
       </header>
       
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-stone-200 border-dashed text-center">
-        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-[#FFFAF5] text-[#FF7B4A] border border-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Camera className="w-8 h-8" />
         </div>
         <h2 className="text-lg font-semibold text-stone-800 mb-2">拍照或上传小票</h2>
@@ -530,7 +433,7 @@ function UploadReceipt() {
         <button 
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium w-full hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="bg-[#FF7B4A] text-white px-6 py-3 rounded-xl font-medium w-full hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isUploading ? (
             <>
@@ -620,7 +523,7 @@ function ManualEntry() {
         </div>
         <button 
           onClick={handleAddItem}
-          className="text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 text-sm"
+          className="text-[#FF7B4A] hover:text-orange-600 font-medium flex items-center gap-1 text-sm"
         >
           <Plus className="w-4 h-4" />
           添加食材
@@ -655,7 +558,7 @@ function ManualEntry() {
                   value={item.weight}
                   onChange={(e) => handleUpdateItem(index, 'weight', e.target.value)}
                   placeholder="例如: 500"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 />
               </div>
               <div>
@@ -665,7 +568,7 @@ function ManualEntry() {
                   value={item.price}
                   onChange={(e) => handleUpdateItem(index, 'price', e.target.value)}
                   placeholder="例如: 25.5"
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 />
               </div>
             </div>
@@ -677,7 +580,7 @@ function ManualEntry() {
                   type="date" 
                   value={item.productionDate}
                   onChange={(e) => handleUpdateItem(index, 'productionDate', e.target.value)}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 />
               </div>
               <div>
@@ -686,7 +589,7 @@ function ManualEntry() {
                   type="date" 
                   value={item.expiryDate}
                   onChange={(e) => handleUpdateItem(index, 'expiryDate', e.target.value)}
-                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 />
               </div>
             </div>
@@ -697,7 +600,7 @@ function ManualEntry() {
       <div className="pt-4">
         <button 
           onClick={handleSave}
-          className="w-full bg-emerald-600 text-white py-3 rounded-xl font-medium hover:bg-emerald-700 transition-colors mt-4"
+          className="w-full bg-[#FF7B4A] text-white py-3 rounded-xl font-medium hover:bg-orange-600 transition-colors mt-4"
         >
           保存入库 ({items.length}件)
         </button>

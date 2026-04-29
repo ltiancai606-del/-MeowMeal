@@ -279,7 +279,7 @@ export default function Nutrition() {
             placeholder={activeTab === 'ingredients' ? "搜索食材" : "搜索营养剂"}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20 shadow-sm"
           />
         </div>
 
@@ -291,12 +291,12 @@ export default function Nutrition() {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`flex flex-col items-center min-w-[48px] gap-2 relative shrink-0`}
               >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${activeCategory === cat.id ? 'bg-cyan-500 text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${activeCategory === cat.id ? 'bg-[#FF7B4A] text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
                   {cat.icon}
                 </div>
-                <span className={`text-xs ${activeCategory === cat.id ? 'text-cyan-600 font-medium' : 'text-stone-500'}`}>{cat.name}</span>
+                <span className={`text-xs ${activeCategory === cat.id ? 'text-[#FF7B4A] font-medium' : 'text-stone-500'}`}>{cat.name}</span>
                 {activeCategory === cat.id && (
-                  <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                  <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-[#FF7B4A]"></div>
                 )}
               </button>
             ))}
@@ -311,12 +311,12 @@ export default function Nutrition() {
                 onClick={() => setActiveSuppCategory(cat.id)}
                 className={`flex flex-col items-center min-w-[48px] gap-2 relative shrink-0`}
               >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${activeSuppCategory === cat.id ? 'bg-cyan-500 text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${activeSuppCategory === cat.id ? 'bg-[#FF7B4A] text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
                   {cat.icon}
                 </div>
-                <span className={`text-xs ${activeSuppCategory === cat.id ? 'text-cyan-600 font-medium' : 'text-stone-500'}`}>{cat.name}</span>
+                <span className={`text-xs ${activeSuppCategory === cat.id ? 'text-[#FF7B4A] font-medium' : 'text-stone-500'}`}>{cat.name}</span>
                 {activeSuppCategory === cat.id && (
-                  <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                  <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-[#FF7B4A]"></div>
                 )}
               </button>
             ))}
@@ -327,7 +327,7 @@ export default function Nutrition() {
       <div className="p-4">
         {activeTab === 'supplements' && (
           <div className="flex justify-center mb-6 mt-2">
-            <button className="text-cyan-600 text-sm font-medium flex items-center gap-1 hover:text-cyan-700 bg-cyan-50 px-4 py-2 rounded-full">
+            <button className="text-[#FF7B4A] text-sm font-medium flex items-center gap-1 hover:text-[#FF7B4A] bg-[#FFFAF5] border border-orange-100 px-4 py-2 rounded-full">
               + 添加自定义营养剂
             </button>
           </div>
@@ -345,7 +345,7 @@ export default function Nutrition() {
                       onClick={() => scrollToGroup(groupName)}
                       className={`text-center px-1 py-2 text-xs font-medium rounded-xl transition-colors shrink-0 ${
                         activeSidebarGroup === groupName 
-                          ? 'bg-white text-cyan-600 shadow-sm border border-stone-100' 
+                          ? 'bg-white text-[#FF7B4A] shadow-sm border border-stone-100' 
                           : 'text-stone-500 hover:bg-stone-100'
                       }`}
                     >
@@ -359,7 +359,7 @@ export default function Nutrition() {
                   {sortedGroups.map(([groupName, meats]) => (
                     <div key={groupName} id={`group-anchor-${groupName}`} className="scroll-mt-[200px]">
                       <h3 className="text-sm font-bold text-stone-800 mb-3 flex items-center gap-2">
-                        <div className="w-1.5 h-4 bg-cyan-500 rounded-full"></div>
+                        <div className="w-1.5 h-4 bg-[#FF7B4A] rounded-full"></div>
                         {groupName}
                       </h3>
                       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-stone-100/50">
@@ -379,7 +379,7 @@ export default function Nutrition() {
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xs text-cyan-600 bg-cyan-50 px-2 py-1 rounded-md whitespace-nowrap">详情</span>
+                              <span className="text-xs text-[#FF7B4A] bg-[#FFFAF5] border border-orange-100 px-2 py-1 rounded-md whitespace-nowrap">详情</span>
                               <ChevronRight className="w-4 h-4 text-stone-300" />
                             </div>
                           </div>
@@ -412,7 +412,7 @@ export default function Nutrition() {
                       <span className="font-bold text-stone-800 text-base truncate">{supp.name}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-cyan-600 bg-cyan-50 px-2 py-1 rounded-md whitespace-nowrap">详情</span>
+                      <span className="text-xs text-[#FF7B4A] bg-[#FFFAF5] border border-orange-100 px-2 py-1 rounded-md whitespace-nowrap">详情</span>
                       <ChevronRight className="w-4 h-4 text-stone-300" />
                     </div>
                   </div>

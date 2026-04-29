@@ -4,6 +4,7 @@ import { MOCK_RECIPES, MOCK_CATS, MEAT_DATABASE, SUPPLEMENTS, Recipe, saveRecipe
 import { FULL_NUTRITION_STANDARDS } from '../data/standards';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useState, useEffect } from 'react';
+import { cn } from '../lib/utils';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -179,58 +180,143 @@ const calculateSupplements = (
 };
 
 function RecipeList() {
+  const [activeTab, setActiveTab] = useState('all');
+  
   return (
-    <div className="p-4 space-y-4 bg-stone-50 min-h-full">
+    <div className="min-h-full bg-stone-50 flex flex-col pt-12 pb-24 px-5">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-stone-900">食谱管理</h1>
-        <Link to="/recipes/create" className="bg-emerald-600 text-white p-2 rounded-full shadow-sm hover:bg-emerald-700">
-          <Plus className="w-5 h-5" />
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-stone-800">
+          <span className="text-stone-400">🍽️</span> 
+          食谱管理
+        </h1>
+        <Link to="/recipes/create" className="bg-[#FF7B4A] text-white px-4 py-2 rounded-full font-medium shadow-sm hover:bg-orange-600 flex items-center gap-1 text-sm">
+          <Plus className="w-4 h-4" />
+          新建食谱
         </Link>
       </header>
 
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-stone-400" />
+        </div>
+        <input 
+          type="text" 
+          placeholder="搜索食谱..." 
+          className="w-full bg-white border border-stone-100 rounded-2xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
+        />
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1 mb-6 scrollbar-none">
+        {['all', 'active', 'completed', 'draft'].map(tab => {
+          const isActive = activeTab === tab;
+          let label = '';
+          switch(tab) {
+            case 'all': label = '全部'; break;
+            case 'active': label = '执行中'; break;
+            case 'completed': label = '已完成'; break;
+            case 'draft': label = '草稿'; break;
+          }
+          return (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                isActive ? "bg-[#FF7B4A] text-white" : "bg-white text-stone-500 border border-stone-100"
+              )}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
       {MOCK_RECIPES.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-stone-400">
+        <div className="flex flex-col items-center justify-center py-20 text-stone-400 mt-10">
           <BookOpen className="w-16 h-16 mb-4 text-stone-200" />
           <p className="text-stone-500 font-medium mb-1">暂无食谱</p>
-          <p className="text-sm mb-6">为你的猫咪定制第一份健康食谱吧</p>
-          <Link to="/recipes/create" className="bg-emerald-600 text-white px-6 py-2 rounded-full shadow-sm hover:bg-emerald-700 font-medium">
-            去定制
-          </Link>
         </div>
       ) : (
         <div className="space-y-4">
           {[...MOCK_RECIPES].reverse().map(recipe => {
-            const cats = recipe.catIds.map(id => MOCK_CATS.find(c => c.id === id)?.name).join(', ');
+            const recipeCats = MOCK_CATS.filter(c => recipe.catIds.includes(c.id));
+            const totalWeight = recipe.ingredients.reduce((sum, item) => sum + item.weight, 0);
+            
+            // Calculate a fake protein/fat ratio for display purposes
+            const proteinDisplay = recipe.standard === 'NRC' ? 58 : 62;
+            const fatDisplay = recipe.standard === 'NRC' ? 32 : 28;
+
             return (
               <Link
                 key={recipe.id}
                 to={`/recipes/${recipe.id}`}
-                className="block bg-white rounded-2xl p-4 shadow-sm border border-stone-100 hover:border-emerald-200 transition-colors"
+                className="block bg-white rounded-3xl p-5 shadow-sm border border-stone-50 transition-colors"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-lg font-semibold text-stone-800">{recipe.name}</h2>
-                  {recipe.isActive && (
-                    <span className="flex items-center gap-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
-                      <Activity className="w-3 h-3" />
-                      执行中
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-xs px-2.5 py-1 rounded-md font-medium",
+                      recipe.isActive ? "bg-[#FFFAF5] text-[#FF7B4A] border border-orange-100" : "bg-stone-100 text-stone-500"
+                    )}>
+                      {recipe.isActive ? '执行中' : '草稿'}
                     </span>
-                  )}
-                </div>
-                <p className="text-sm text-stone-500 mb-4">适用猫咪: {cats}</p>
-                
-                {(recipe.startDate || recipe.endDate) && (
-                  <div className="text-xs text-stone-500 mb-4 bg-stone-50 p-2 rounded-lg space-y-1">
-                    {recipe.startDate && <p>开始执行: {formatSafeDate(recipe.startDate)}</p>}
-                    {recipe.endDate && <p>结束执行: {formatSafeDate(recipe.endDate)}</p>}
+                    <span className="text-[10px] bg-blue-50 text-blue-500 px-2 py-1 rounded-md font-medium">
+                      {recipe.standard}
+                    </span>
                   </div>
-                )}
-                
-                <div className="flex justify-between items-center text-xs text-stone-400">
-                  <span>{recipe.standard} 标准 · {recipe.mode === 'by_need' ? '按需定制' : '按库存反推'}</span>
-                  <span className="flex items-center gap-1">
-                    查看详情 <ChevronRight className="w-4 h-4" />
-                  </span>
+                  <ChevronRight className="w-4 h-4 text-stone-300" />
                 </div>
+                
+                <h2 className="text-lg font-bold text-stone-800 mb-2">{recipe.name}</h2>
+                
+                <div className="flex gap-2 mb-3">
+                  {recipeCats.map(cat => (
+                    <div key={cat.id} className="flex items-center gap-1 bg-[#FFFAF5] border border-orange-100 px-2 py-1 rounded-md text-xs text-orange-600 font-medium">
+                      <span>🐱</span> {cat.name}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex items-center gap-3 text-[11px] text-stone-500 mb-4">
+                  <span className="flex items-center gap-1">⌚ {recipe.days} 天周期</span>
+                  <span className="flex items-center gap-1 text-[#FF7B4A]">✓ 已执行 {recipe.executedDays} 天</span>
+                  <span>总量 {totalWeight}g</span>
+                </div>
+                
+                <div className="flex gap-2 flex-wrap mb-5">
+                  {recipe.ingredients.slice(0, 4).map((item, idx) => {
+                    const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
+                    return (
+                      <span key={idx} className="text-[11px] bg-stone-50 text-stone-500 px-2.5 py-1 rounded-full">
+                        {meat ? meat.name.split('·')[0] : '未知食材'}
+                      </span>
+                    )
+                  })}
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-stone-500 font-medium">
+                    <span>营养比例</span>
+                    <span>蛋白 {proteinDisplay}% · 脂肪 {fatDisplay}%</span>
+                  </div>
+                  <div className="w-full bg-stone-100 rounded-full h-2 flex overflow-hidden">
+                    <div className="bg-[#FF7B4A] h-2" style={{ width: `${proteinDisplay}%` }}></div>
+                    <div className="bg-amber-400 h-2" style={{ width: `${fatDisplay}%` }}></div>
+                    <div className="bg-emerald-500 h-2" style={{ width: `${100 - proteinDisplay - fatDisplay}%` }}></div>
+                  </div>
+                  <div className="flex gap-4 text-[10px] text-stone-400 mt-1">
+                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FF7B4A]"></span>蛋白质</span>
+                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>脂肪</span>
+                    <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>碳水</span>
+                  </div>
+                </div>
+
+                {!recipe.isActive && (
+                  <button className="w-full mt-5 bg-[#FF7B4A] text-white py-2.5 rounded-xl text-sm font-medium hover:bg-orange-600 transition-colors flex justify-center items-center gap-1">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    开始执行
+                  </button>
+                )}
               </Link>
             );
           })}
@@ -247,13 +333,14 @@ function CreateOrEditRecipe() {
   
   const existingRecipe = isEditing ? MOCK_RECIPES.find(r => r.id === id) : null;
 
+  const [step, setStep] = useState(1);
+
   const [name, setName] = useState(existingRecipe?.name || '');
   const [selectedCats, setSelectedCats] = useState<string[]>(existingRecipe?.catIds || []);
   const [standard, setStandard] = useState<'NRC' | 'AAFCO'>(existingRecipe?.standard || 'NRC');
   const [mode, setMode] = useState<'by_need' | 'by_inventory'>(existingRecipe?.mode || 'by_need');
   const [error, setError] = useState('');
   
-  // Calculate daily amount and days from existing recipe if editing
   const initialDays = existingRecipe?.days?.toString() || '7';
   let initialDailyAmount = '150';
   if (existingRecipe) {
@@ -264,39 +351,57 @@ function CreateOrEditRecipe() {
   const [dailyAmount, setDailyAmount] = useState(initialDailyAmount);
   const [days, setDays] = useState(initialDays);
 
+  const [previewIngredients, setPreviewIngredients] = useState<any[]>([]);
+  const [previewSupplements, setPreviewSupplements] = useState<any[]>([]);
+
   const handleToggleCat = (catId: string) => {
     setSelectedCats(prev => 
       prev.includes(catId) ? prev.filter(c => c !== catId) : [...prev, catId]
     );
   };
 
-  const handleSave = () => {
+  const handleNextStep = () => {
     setError('');
-    if (!name.trim()) {
-      setError('请输入食谱名称');
-      return;
-    }
-    if (selectedCats.length === 0) {
-      setError('请至少选择一只猫咪');
-      return;
-    }
+    if (step === 1) {
+      if (selectedCats.length === 0) {
+        setError('请至少选择一只猫咪');
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      if (!name.trim()) {
+        const catNames = selectedCats.map(cId => MOCK_CATS.find(c => c.id === cId)?.name).join('');
+        setName(`${catNames}的${standard}营养餐`);
+      }
+      
+      const totalDays = parseInt(days) || 7;
+      const daily = parseInt(dailyAmount) || 150;
+      const totalWeight = totalDays * daily;
 
+      const defaultIngredients = [
+        { meatId: 'm3', weight: Math.round(totalWeight * 0.5) }, // 鸡胸肉 50%
+        { meatId: 'm1', weight: Math.round(totalWeight * 0.2) }, // 猪里脊 20%
+        { meatId: 'm5', weight: Math.round(totalWeight * 0.1) }, // 三文鱼 10%
+        { meatId: 'm6', weight: Math.round(totalWeight * 0.05) }, // 鸡肝 5%
+        { meatId: 'm9', weight: Math.round(totalWeight * 0.05) }, // 猪腰 5%
+        { meatId: 'm10', weight: Math.round(totalWeight * 0.05) }, // 青口贝 5%
+        { meatId: 'm7', weight: Math.round(totalWeight * 0.05) }, // 猪心 5%
+      ];
+
+      const finalIngredients = existingRecipe?.ingredients || defaultIngredients;
+      const finalSupplements = existingRecipe?.supplements || calculateSupplements(finalIngredients, standard as 'NRC' | 'AAFCO');
+
+      setPreviewIngredients(finalIngredients);
+      setPreviewSupplements(finalSupplements);
+
+      setStep(3);
+    } else if (step === 3) {
+      setStep(4);
+    }
+  };
+
+  const handleSave = () => {
     const totalDays = parseInt(days) || 7;
-    const daily = parseInt(dailyAmount) || 150;
-    const totalWeight = totalDays * daily;
-
-    const defaultIngredients = [
-      { meatId: 'm3', weight: Math.round(totalWeight * 0.5) }, // 鸡胸肉 50%
-      { meatId: 'm1', weight: Math.round(totalWeight * 0.2) }, // 猪里脊 20%
-      { meatId: 'm5', weight: Math.round(totalWeight * 0.1) }, // 三文鱼 10%
-      { meatId: 'm6', weight: Math.round(totalWeight * 0.05) }, // 鸡肝 5%
-      { meatId: 'm9', weight: Math.round(totalWeight * 0.05) }, // 猪腰 5%
-      { meatId: 'm10', weight: Math.round(totalWeight * 0.05) }, // 青口贝 5%
-      { meatId: 'm7', weight: Math.round(totalWeight * 0.05) }, // 猪心 5%
-    ];
-
-    const finalIngredients = existingRecipe?.ingredients || defaultIngredients;
-    const finalSupplements = existingRecipe?.supplements || calculateSupplements(finalIngredients, standard as 'NRC' | 'AAFCO');
 
     const recipeData: Recipe = {
       id: isEditing ? existingRecipe!.id : `r${Date.now()}`,
@@ -305,8 +410,8 @@ function CreateOrEditRecipe() {
       standard,
       mode,
       days: totalDays,
-      ingredients: finalIngredients,
-      supplements: finalSupplements as any,
+      ingredients: previewIngredients,
+      supplements: previewSupplements as any,
       createdAt: existingRecipe?.createdAt || new Date().toISOString().split('T')[0],
       isActive: existingRecipe ? existingRecipe.isActive : false,
       executedDays: existingRecipe ? existingRecipe.executedDays : 0,
@@ -328,114 +433,344 @@ function CreateOrEditRecipe() {
   };
 
   return (
-    <div className="p-4 space-y-4 bg-stone-50 min-h-full pb-24">
+    <div className="p-5 space-y-5 bg-[#F9F7F4] min-h-full pb-32">
       <header className="mb-6 flex items-center gap-2">
-        <button onClick={() => navigate(-1)} className="text-stone-500 hover:text-stone-700">
-          <ChevronRight className="w-6 h-6 rotate-180" />
+        <button onClick={() => {
+          if (step > 1 && step < 4) setStep(step - 1);
+          else navigate(-1);
+        }} className="text-stone-500 hover:text-stone-700 w-8 h-8 flex items-center justify-center bg-white rounded-full shadow-sm">
+          <ChevronRight className="w-5 h-5 rotate-180" />
         </button>
-        <h1 className="text-2xl font-bold text-stone-900">{isEditing ? '编辑食谱' : '定制新食谱'}</h1>
+        <div className="flex-1 text-center pr-8">
+          <h1 className="text-lg font-bold text-stone-900">{isEditing ? '编辑食谱' : '新建食谱'} {step}/4</h1>
+        </div>
       </header>
+
+      {/* Step Indicator */}
+      <div className="flex justify-between items-center px-4 mb-8">
+        {[1,2,3,4].map(s => (
+          <div key={s} className="flex items-center">
+            <div className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm transition-colors",
+              step >= s ? "bg-[#FF7B4A] text-white" : "bg-white text-stone-300"
+            )}>
+              {s}
+            </div>
+            {s < 4 && (
+              <div className={cn(
+                "w-12 h-1 mx-2 rounded-full transition-colors",
+                step > s ? "bg-[#FF7B4A]" : "bg-stone-200"
+              )}></div>
+            )}
+          </div>
+        ))}
+      </div>
       
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium">
-          {error}
+        <div className="bg-red-50 text-red-600 p-3 rounded-2xl text-sm font-medium border border-red-100 flex items-center gap-2">
+          <span>⚠️</span> {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">食谱名称 <span className="text-red-500">*</span></label>
-          <input 
-            type="text" 
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="例如: Mimi的减脂餐" 
-            className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-          />
+      {step === 1 && (
+        <div className="animate-in slide-in-from-right-4 space-y-6">
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+            <h2 className="text-base font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-stone-400">📝</span> 食谱名称
+            </h2>
+            <input 
+              type="text" 
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="例如: 橘橘小白均营养餐" 
+              className="w-full px-4 py-3 bg-stone-50 border border-stone-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20 text-sm font-medium" 
+            />
+            <p className="text-[10px] text-stone-400 mt-2 ml-1">不填将自动生成名称</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+            <h2 className="text-base font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-stone-400">🐾</span> 目标猫咪 <span className="text-red-500 font-normal text-sm">*</span>
+            </h2>
+            {MOCK_CATS.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {MOCK_CATS.map(cat => {
+                  const isSelected = selectedCats.includes(cat.id);
+                  return (
+                    <button 
+                      key={cat.id}
+                      onClick={() => handleToggleCat(cat.id)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left",
+                        isSelected 
+                          ? "border-[#FF7B4A] bg-[#FFFAF5]" 
+                          : "border-transparent bg-stone-50 hover:bg-stone-100"
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                        {cat.avatarUrl ? <img src={cat.avatarUrl} className="w-full h-full object-cover"/> : <span>🐱</span>}
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm text-stone-800">{cat.name}</div>
+                        <div className="text-[10px] text-stone-500">{cat.weight || '?'}kg</div>
+                      </div>
+                      {isSelected && (
+                        <div className="ml-auto w-5 h-5 rounded-full bg-[#FF7B4A] text-white flex items-center justify-center">
+                          <Check className="w-3 h-3" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-sm text-stone-500 bg-stone-50 p-4 rounded-2xl text-center">
+                暂无猫咪档案，<Link to="/profile/cats/new" className="text-[#FF7B4A] font-medium underline">去添加</Link>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+             <h2 className="text-base font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-stone-400">📊</span> 营养标准
+            </h2>
+            <div className="flex gap-3">
+              {(['NRC', 'AAFCO'] as const).map(std => {
+                const isSelected = standard === std;
+                return (
+                  <button
+                    key={std}
+                    onClick={() => setStandard(std)}
+                    className={cn(
+                      "flex-1 p-4 rounded-2xl border-2 font-bold transition-all text-center",
+                      isSelected
+                        ? "border-[#FF7B4A] bg-[#FF7B4A] text-white shadow-md shadow-orange-500/20"
+                        : "border-transparent bg-stone-50 text-stone-500 hover:bg-stone-100"
+                    )}
+                  >
+                    {std} {std === 'NRC' && <span className="block text-[10px] font-normal opacity-80 mt-1">推荐日常使用</span>}
+                    {std === 'AAFCO' && <span className="block text-[10px] font-normal opacity-80 mt-1">商业粮标准</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">目标猫咪 (可多选) <span className="text-red-500">*</span></label>
-          {MOCK_CATS.length > 0 ? (
-            <div className="flex gap-2 flex-wrap">
-              {MOCK_CATS.map(cat => (
-                <label key={cat.id} className={`flex items-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition-colors ${selectedCats.includes(cat.id) ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-200 hover:bg-stone-50'}`}>
-                  <input 
-                    type="checkbox" 
-                    checked={selectedCats.includes(cat.id)}
-                    onChange={() => handleToggleCat(cat.id)}
-                    className="hidden" 
-                  />
-                  <span className="text-sm font-medium">{cat.name}</span>
-                </label>
-              ))}
+      )}
+
+      {step === 2 && (
+        <div className="animate-in slide-in-from-right-4 space-y-6">
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+             <h2 className="text-base font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-stone-400">⚙️</span> 制作模式
+            </h2>
+            <div className="space-y-3">
+              <button
+                onClick={() => setMode('by_need')}
+                className={cn(
+                  "w-full flex items-start gap-4 p-4 rounded-2xl border-2 transition-all text-left",
+                  mode === 'by_need' ? "border-[#FF7B4A] bg-[#FFFAF5]" : "border-stone-100 bg-white hover:bg-stone-50"
+                )}
+              >
+                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 transition-colors", mode === 'by_need' ? "border-[#FF7B4A] bg-[#FF7B4A]" : "border-stone-300")}>
+                  {mode === 'by_need' && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                </div>
+                <div>
+                  <h3 className="font-bold text-stone-800 mb-1 text-sm">按需定制 (推荐)</h3>
+                  <p className="text-xs text-stone-500">输入每日建议喂食量及天数，自动生成需准备的食材总量及营养配比</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setMode('by_inventory')}
+                className={cn(
+                  "w-full flex items-start gap-4 p-4 rounded-2xl border-2 transition-all text-left",
+                  mode === 'by_inventory' ? "border-[#FF7B4A] bg-[#FFFAF5]" : "border-stone-100 bg-white hover:bg-stone-50"
+                )}
+              >
+                <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0 transition-colors", mode === 'by_inventory' ? "border-[#FF7B4A] bg-[#FF7B4A]" : "border-stone-300")}>
+                  {mode === 'by_inventory' && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                </div>
+                <div>
+                  <h3 className="font-bold text-stone-800 mb-1 text-sm">按临期库存反推</h3>
+                  <p className="text-xs text-stone-500">优先选择您冰箱中即将过期的食材，确保无浪费生成配方</p>
+                </div>
+              </button>
             </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+             <h2 className="text-base font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <span className="text-stone-400">⚖️</span> 喂食参数
+            </h2>
+            <div className="space-y-5 flex flex-col">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-stone-800">总周期 (天)</label>
+                  <span className="text-[#FF7B4A] font-bold">{days}</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" max="60" 
+                  value={days}
+                  onChange={e => setDays(e.target.value)}
+                  className="w-full accent-[#FF7B4A]" 
+                />
+                <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+                  <span>1天</span>
+                  <span>60天</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-bold text-stone-800">单日总喂量 (g/天)</label>
+                  <span className="text-[#FF7B4A] font-bold">{dailyAmount}</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="50" max="600" step="10"
+                  value={dailyAmount}
+                  onChange={e => setDailyAmount(e.target.value)}
+                  className="w-full accent-[#FF7B4A]" 
+                />
+                <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+                  <span>50g</span>
+                  <span>600g</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-dashed border-stone-200">
+              <div className="bg-[#FFFAF5] p-4 rounded-2xl flex justify-between items-center">
+                <div>
+                  <p className="text-xs text-stone-500 font-medium mb-1">预计需制备食材总计</p>
+                  <p className="text-[10px] text-orange-400">({days}天 × {dailyAmount}g)</p>
+                </div>
+                <div className="text-2xl font-bold text-[#FF7B4A]">{Number(days) * Number(dailyAmount)}<span className="text-sm ml-1">g</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="animate-in slide-in-from-right-4 space-y-6">
+          <div className="bg-white rounded-3xl p-5 shadow-sm border border-stone-50">
+            <h2 className="text-base font-bold text-stone-800 mb-2 flex items-center gap-2">
+              <span className="text-stone-400">🥩</span> 生成配方预览
+            </h2>
+            <p className="text-xs text-stone-500 mb-5">系统已根据您的参数，自动生成符合 {standard} 标准的配方。</p>
+
+            <div className="space-y-3">
+              {previewIngredients.map((item, idx) => {
+                const meat = MEAT_DATABASE.find(m => m.id === item.meatId);
+                if (!meat) return null;
+                const percentage = ((item.weight / (Number(days) * Number(dailyAmount))) * 100).toFixed(1);
+                
+                return (
+                  <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-stone-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xs font-bold text-stone-500">
+                        {meat.category === 'red_meat' ? '肉' : meat.category === 'liver' ? '肝' : meat.name[0]}
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm text-stone-800">{meat.name}</div>
+                        <div className="text-[10px] text-stone-400">占比 {percentage}%</div>
+                      </div>
+                    </div>
+                    <div className="font-bold text-stone-800">{item.weight}g</div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="bg-[#FFFAF5] border border-orange-100 rounded-3xl p-5 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+               <h2 className="text-base font-bold text-orange-800 flex items-center gap-2">
+                <span className="text-orange-400">💊</span> 需补充添加剂
+              </h2>
+            </div>
+            
+            {previewSupplements.length > 0 ? (
+              <div className="space-y-3">
+                {previewSupplements.map((item, idx) => {
+                  const supp = SUPPLEMENTS.find(s => s.id === item.supplementId);
+                  if (!supp) return null;
+                  return (
+                    <div key={idx} className="flex justify-between items-center px-2 py-1 border-b border-orange-200/50 last:border-0">
+                      <span className="text-sm text-orange-900 font-medium">{supp.name}</span>
+                      <span className="text-sm font-bold text-orange-600">{item.amount}{supp.unit}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-orange-600/70 text-center py-2">无需额外补充</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="animate-in slide-in-from-right-4 flex flex-col items-center justify-center py-10 space-y-6 text-center">
+          <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+             <Check className="w-12 h-12" strokeWidth={3} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-stone-800 mb-2">食谱生成成功!</h2>
+            <p className="text-stone-500 text-sm">{name}</p>
+          </div>
+
+          <div className="w-full bg-white p-5 rounded-3xl border border-stone-100 shadow-sm text-left mt-4">
+             <div className="flex justify-between items-center mb-3">
+               <span className="text-stone-500 text-sm">适配猫咪</span>
+               <span className="font-bold text-stone-800">{selectedCats.map(cId => MOCK_CATS.find(c => c.id === cId)?.name).join('、')}</span>
+             </div>
+             <div className="flex justify-between items-center mb-3">
+               <span className="text-stone-500 text-sm">营养标准</span>
+               <span className="font-bold text-stone-800">{standard}</span>
+             </div>
+             <div className="flex justify-between items-center mb-3">
+               <span className="text-stone-500 text-sm">总制备量</span>
+               <span className="font-bold text-stone-800">{Number(days) * Number(dailyAmount)}g</span>
+             </div>
+             <div className="flex justify-between items-center">
+               <span className="text-stone-500 text-sm">食材种类</span>
+               <span className="font-bold text-stone-800">{previewIngredients.length} 种</span>
+             </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-stone-100 p-4 pb-safe flex justify-center z-50">
+        <div className="max-w-md w-full px-5 flex gap-3">
+          {step > 1 && step < 4 && (
+            <button 
+              onClick={() => setStep(step - 1)} 
+              className="px-6 py-3.5 rounded-2xl font-bold transition-colors bg-stone-100 text-stone-600 hover:bg-stone-200"
+            >
+              上一步
+            </button>
+          )}
+          
+          {step < 4 ? (
+            <button 
+              onClick={handleNextStep} 
+              className="flex-1 bg-[#FF7B4A] text-white px-4 py-3.5 rounded-2xl font-bold shadow-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+            >
+              下一步 <ChevronRight className="w-4 h-4" />
+            </button>
           ) : (
-            <div className="text-sm text-stone-500 bg-stone-50 p-3 rounded-xl">
-              暂无猫咪档案，<Link to="/profile/cats/new" className="text-emerald-600 font-medium">去添加</Link>
-            </div>
+            <button 
+              onClick={handleSave} 
+              className="flex-1 bg-[#FF7B4A] text-white px-4 py-3.5 rounded-2xl font-bold shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+            >
+              进入配方详情 <ChevronRight className="w-4 h-4" />
+            </button>
           )}
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">营养标准</label>
-          <div className="flex gap-2">
-            <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition-colors ${standard === 'NRC' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-200 hover:bg-stone-50'}`}>
-              <input type="radio" name="standard" value="NRC" checked={standard === 'NRC'} onChange={() => setStandard('NRC')} className="hidden" />
-              <span className="text-sm font-medium">NRC</span>
-            </label>
-            <label className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition-colors ${standard === 'AAFCO' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-200 hover:bg-stone-50'}`}>
-              <input type="radio" name="standard" value="AAFCO" checked={standard === 'AAFCO'} onChange={() => setStandard('AAFCO')} className="hidden" />
-              <span className="text-sm font-medium">AAFCO</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-stone-700 mb-1">生成模式</label>
-          <div className="space-y-2">
-            <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${mode === 'by_need' ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:bg-stone-50'}`}>
-              <input type="radio" name="mode" value="by_need" checked={mode === 'by_need'} onChange={() => setMode('by_need')} className="text-emerald-600 focus:ring-emerald-500" />
-              <div>
-                <p className={`text-sm font-medium ${mode === 'by_need' ? 'text-emerald-900' : 'text-stone-900'}`}>按需定总量</p>
-                <p className={`text-xs mt-0.5 ${mode === 'by_need' ? 'text-emerald-700' : 'text-stone-500'}`}>输入每日喂食量和天数，自动计算总需求</p>
-              </div>
-            </label>
-            <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${mode === 'by_inventory' ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:bg-stone-50'}`}>
-              <input type="radio" name="mode" value="by_inventory" checked={mode === 'by_inventory'} onChange={() => setMode('by_inventory')} className="text-emerald-600 focus:ring-emerald-500" />
-              <div>
-                <p className={`text-sm font-medium ${mode === 'by_inventory' ? 'text-emerald-900' : 'text-stone-900'}`}>按库存反推</p>
-                <p className={`text-xs mt-0.5 ${mode === 'by_inventory' ? 'text-emerald-700' : 'text-stone-500'}`}>优先消耗冰箱临期食材生成食谱</p>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">每日喂食量 (g)</label>
-            <input 
-              type="number" 
-              value={dailyAmount}
-              onChange={e => setDailyAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">制作天数</label>
-            <input 
-              type="number" 
-              value={days}
-              onChange={e => setDays(e.target.value)}
-              className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" 
-            />
-          </div>
-        </div>
-
-        <button onClick={handleSave} className="w-full mt-6 bg-emerald-600 text-white px-4 py-3 rounded-xl font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
-          <Save className="w-5 h-5" />
-          保存食谱
-        </button>
       </div>
     </div>
   );
@@ -993,7 +1328,7 @@ function RecipeDetail() {
                 type="text"
                 value={copyName}
                 onChange={e => setCopyName(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleCopy();
@@ -1010,7 +1345,7 @@ function RecipeDetail() {
               </button>
               <button 
                 onClick={handleCopy}
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#FF7B4A] hover:bg-orange-600 rounded-xl transition-colors"
               >
                 保存
               </button>
@@ -1131,7 +1466,7 @@ function RecipeDetail() {
         <div className="flex justify-between items-start mb-1">
           <h2 className="text-lg font-bold text-stone-800">{recipe.name}</h2>
           {recipe.isActive && (
-            <span className="flex items-center gap-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full shrink-0">
+            <span className="flex items-center gap-1 text-xs bg-[#FFFAF5] text-[#FF7B4A] border border-orange-100 px-2 py-1 rounded-full shrink-0">
               <Activity className="w-3 h-3" />
               执行中
             </span>
@@ -1194,7 +1529,7 @@ function RecipeDetail() {
           <h3 className="font-semibold text-stone-800">营养达标情况 ({recipe.standard || 'NRC'} 标准)</h3>
           <button 
             onClick={() => setShowFullNutritionModal(true)}
-            className="text-emerald-600 text-sm font-medium hover:text-emerald-700 flex items-center gap-1"
+            className="text-[#FF7B4A] text-sm font-medium hover:text-emerald-700 flex items-center gap-1"
           >
             更多 <ChevronRight className="w-4 h-4" />
           </button>
@@ -1264,7 +1599,7 @@ function RecipeDetail() {
                 placeholder="搜索食材"
                 value={pickerSearchQuery}
                 onChange={e => setPickerSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20 shadow-sm"
               />
             </div>
             
@@ -1284,12 +1619,12 @@ function RecipeDetail() {
                   onClick={() => setPickerCategoryFilter(c.id)}
                   className={`flex flex-col items-center min-w-[48px] gap-2 relative shrink-0`}
                 >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${pickerCategoryFilter === c.id ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors ${pickerCategoryFilter === c.id ? 'bg-[#FF7B4A] text-white shadow-md' : 'bg-white text-stone-600 shadow-sm border border-stone-100'}`}>
                     {c.icon}
                   </div>
-                  <span className={`text-xs ${pickerCategoryFilter === c.id ? 'text-emerald-600 font-medium' : 'text-stone-500'}`}>{c.name}</span>
+                  <span className={`text-xs ${pickerCategoryFilter === c.id ? 'text-[#FF7B4A] font-medium' : 'text-stone-500'}`}>{c.name}</span>
                   {pickerCategoryFilter === c.id && (
-                    <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <div className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-[#FF7B4A]"></div>
                   )}
                 </button>
               ))}
@@ -1304,7 +1639,7 @@ function RecipeDetail() {
                       onClick={() => scrollToPickerGroup(groupName)}
                       className={`text-center px-1 py-2 text-xs font-medium rounded-xl transition-colors shrink-0 ${
                         pickerActiveSidebarGroup === groupName 
-                          ? 'bg-white text-emerald-600 shadow-sm border border-stone-100' 
+                          ? 'bg-white text-[#FF7B4A] shadow-sm border border-stone-100' 
                           : 'text-stone-500 hover:bg-stone-100'
                       }`}
                     >
@@ -1350,14 +1685,14 @@ function RecipeDetail() {
                                       name="meat_picker" 
                                       checked={pickerSelectedIds.includes(meat.id)} 
                                       onChange={() => setPickerSelectedIds([meat.id])} 
-                                      className="text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-stone-300"
+                                      className="text-[#FF7B4A] focus:ring-[#FF7B4A]/20 w-5 h-5 border-stone-300"
                                     />
                                   ) : (
                                     <input 
                                       type="checkbox" 
                                       checked={pickerSelectedIds.includes(meat.id)} 
                                       onChange={() => togglePickerSelection(meat.id)} 
-                                      className="text-emerald-600 focus:ring-emerald-500 rounded w-5 h-5 border-stone-300"
+                                      className="text-[#FF7B4A] focus:ring-[#FF7B4A]/20 rounded w-5 h-5 border-stone-300"
                                     />
                                   )}
                                 </div>
@@ -1384,7 +1719,7 @@ function RecipeDetail() {
               <button 
                 onClick={handleConfirmPicker}
                 disabled={pickerSelectedIds.length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#FF7B4A] hover:bg-orange-600 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 确认
               </button>
@@ -1425,7 +1760,7 @@ function RecipeDetail() {
                         newArr[idx] = { ...newArr[idx], weight: e.target.value };
                         setEditedIngredients(newArr);
                       }}
-                      className="w-16 px-2 py-1 text-right border border-stone-200 rounded focus:outline-none focus:border-emerald-500"
+                      className="w-16 px-2 py-1 text-right border border-stone-200 rounded focus:outline-none focus:border-[#FF7B4A]"
                       placeholder="重量"
                     />
                     <span className="text-sm text-stone-500">g</span>
@@ -1439,7 +1774,7 @@ function RecipeDetail() {
                 </div>
               );
             })}
-            <button onClick={openAddPicker} className="w-full py-2 border-2 border-dashed border-stone-200 rounded-xl text-stone-500 hover:border-emerald-500 hover:text-emerald-600 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+            <button onClick={openAddPicker} className="w-full py-2 border-2 border-dashed border-stone-200 rounded-xl text-stone-500 hover:border-[#FF7B4A] hover:text-[#FF7B4A] transition-colors flex items-center justify-center gap-2 text-sm font-medium">
               <Plus className="w-4 h-4" /> 添加食材
             </button>
           </div>
@@ -1491,7 +1826,7 @@ function RecipeDetail() {
                 placeholder="搜索营养剂"
                 value={pickerSupplementSearchQuery}
                 onChange={e => setPickerSupplementSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7B4A]/20 shadow-sm"
               />
             </div>
 
@@ -1531,7 +1866,7 @@ function RecipeDetail() {
                       <div className="font-bold text-stone-800 text-base truncate">{supp.name}</div>
                       <div className="text-xs text-stone-400 mt-0.5">{supp.brand || '通用'}</div>
                       {supp.type === 'calcium' && (
-                        <div className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                        <div className="text-xs text-[#FF7B4A] mt-1 flex items-center gap-1">
                           <Info className="w-3 h-3" />
                           添加钙粉时，请注意调整用量以满足钙磷比 (推荐 1.2 左右)
                         </div>
@@ -1545,14 +1880,14 @@ function RecipeDetail() {
                         name="supp_picker" 
                         checked={pickerSelectedSupplementIds.includes(supp.id)} 
                         onChange={() => setPickerSelectedSupplementIds([supp.id])} 
-                        className="text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-stone-300"
+                        className="text-[#FF7B4A] focus:ring-[#FF7B4A]/20 w-5 h-5 border-stone-300"
                       />
                     ) : (
                       <input 
                         type="checkbox" 
                         checked={pickerSelectedSupplementIds.includes(supp.id)} 
                         onChange={() => toggleSupplementPickerSelection(supp.id)} 
-                        className="text-emerald-600 focus:ring-emerald-500 rounded w-5 h-5 border-stone-300"
+                        className="text-[#FF7B4A] focus:ring-[#FF7B4A]/20 rounded w-5 h-5 border-stone-300"
                       />
                     )}
                   </div>
@@ -1573,7 +1908,7 @@ function RecipeDetail() {
               <button 
                 onClick={handleConfirmSupplementPicker}
                 disabled={pickerSelectedSupplementIds.length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#FF7B4A] hover:bg-orange-600 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 确认
               </button>
@@ -1586,7 +1921,7 @@ function RecipeDetail() {
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-stone-800">营养剂清单</h3>
           {isEditingRecipe && (
-            <button onClick={handleAutoCalculateSupplements} className="text-xs text-emerald-600 bg-emerald-50 font-medium px-2 py-1 hover:bg-emerald-100 rounded flex items-center gap-1">
+            <button onClick={handleAutoCalculateSupplements} className="text-xs text-[#FF7B4A] bg-[#FFFAF5] font-medium border border-orange-100 px-2 py-1 hover:bg-orange-100 rounded flex items-center gap-1">
               <Activity className="w-3 h-3" /> 智能计算
             </button>
           )}
@@ -1612,7 +1947,7 @@ function RecipeDetail() {
                         newArr[idx] = { ...newArr[idx], amount: e.target.value };
                         setEditedSupplements(newArr);
                       }}
-                      className="w-16 px-2 py-1 text-right border border-stone-200 rounded focus:outline-none focus:border-emerald-500"
+                      className="w-16 px-2 py-1 text-right border border-stone-200 rounded focus:outline-none focus:border-[#FF7B4A]"
                       placeholder="用量"
                     />
                     <span className="text-sm text-stone-500 w-8">{supp.unit}</span>
@@ -1626,7 +1961,7 @@ function RecipeDetail() {
                 </div>
               );
             })}
-            <button onClick={openAddSupplementPicker} className="w-full py-2 border-2 border-dashed border-stone-200 rounded-xl text-stone-500 hover:border-emerald-500 hover:text-emerald-600 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+            <button onClick={openAddSupplementPicker} className="w-full py-2 border-2 border-dashed border-stone-200 rounded-xl text-stone-500 hover:border-[#FF7B4A] hover:text-[#FF7B4A] transition-colors flex items-center justify-center gap-2 text-sm font-medium">
               <Plus className="w-4 h-4" /> 添加营养剂
             </button>
           </div>
@@ -1652,14 +1987,14 @@ function RecipeDetail() {
             <button onClick={handleCancelEditRecipe} className="w-1/3 bg-white text-stone-600 border border-stone-200 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-stone-50 transition-colors flex items-center justify-center">
               取消
             </button>
-            <button onClick={handleSaveRecipe} className="w-2/3 text-white px-4 py-3 rounded-xl font-medium shadow-lg transition-colors flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700">
+            <button onClick={handleSaveRecipe} className="w-2/3 text-white px-4 py-3 rounded-xl font-medium shadow-lg transition-colors flex items-center justify-center gap-2 bg-[#FF7B4A] hover:bg-orange-600">
               <Save className="w-5 h-5" />
               保存修改
             </button>
           </div>
         ) : (
           <>
-            <button onClick={handleEditRecipe} className="w-full bg-white text-emerald-600 border border-emerald-600 px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
+            <button onClick={handleEditRecipe} className="w-full bg-white text-[#FF7B4A] border border-[#FF7B4A] px-4 py-3 rounded-xl font-medium shadow-sm hover:bg-[#FFFAF5] transition-colors flex items-center justify-center gap-2">
               <Edit2 className="w-5 h-5" />
               编辑食谱
             </button>

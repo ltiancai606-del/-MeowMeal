@@ -19,15 +19,15 @@ function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-stone-50 text-stone-900 font-sans">
-      <main className="flex-1 overflow-y-auto pb-20">
-        <div className="max-w-md mx-auto h-full bg-white shadow-sm">
+    <div className="flex flex-col h-screen bg-[#F0F2F5] text-stone-900 font-sans">
+      <main className="flex-1 overflow-y-auto pb-[72px]">
+        <div className="max-w-md mx-auto h-full bg-[#f9f7f4] shadow-sm relative shadow-xl overflow-x-hidden">
           {children}
         </div>
       </main>
       
-      <nav className="fixed bottom-0 w-full bg-white border-t border-stone-200 pb-safe">
-        <div className="max-w-md mx-auto flex justify-around items-center h-16">
+      <nav className="fixed bottom-0 w-full bg-white border-t border-stone-100 pb-safe z-50">
+        <div className="max-w-md mx-auto flex justify-around items-center h-14">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = item.path === '/' 
@@ -38,11 +38,11 @@ function Layout({ children }: { children: React.ReactNode }) {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center justify-center w-full h-full space-y-1",
-                  isActive ? "text-emerald-600" : "text-stone-400 hover:text-stone-600"
+                  "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
+                  isActive ? "text-[#FF7B4A]" : "text-stone-400 hover:text-stone-600"
                 )}
               >
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
                 <span className="text-[10px] font-medium">{item.label}</span>
               </Link>
             );
